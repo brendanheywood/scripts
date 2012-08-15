@@ -27,6 +27,8 @@ if ($restore){
 	
 	if($db{type} eq 'mysql'){
 		$command = "mysql -u $db{user} --password=$db{pass} $db{name} < $restore";
+	} elsif($db{type} eq 'postgres7'){
+	 	$command = "export PGPASSWORD=\"$db{pass}\"; pg_restore -c -O -U $db{user} -d $db{name} $restore";
 	} else {
 		print "Don't know how to restore type: $db{type}\n";
 		exit;
