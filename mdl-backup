@@ -52,7 +52,7 @@ if ($restore){
 		$command = "mysqldump --skip-lock-tables -u $db{user} --password=$db{pass} $db{name} -r $backup_file";
 	} elsif($db{type} eq 'postgres7'){
 	# This isn't terribly secure but we're generally dealing with dev boxes so no-one else should be around
-	 	$command = "export PGPASSWORD=\"$db{pass}\"; pg_dump -Fc -O $db{name} -U $db{user} -f $backup_file -h $db{host}";
+	 	$command = "export PGPASSWORD=\"$db{pass}\"; pg_dump -Fc -c -O $db{name} -U $db{user} -f $backup_file -h $db{host}";
 	} else {
 		print "Don't know how to backup type: $db{type}\n";
 		exit;
