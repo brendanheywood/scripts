@@ -28,14 +28,18 @@ if ($restore){
 	if($db{type} eq 'mysql'){
 		$command = "mysql -u $db{user} --password=$db{pass} $db{name} < $restore";
 	} elsif($db{type} eq 'postgres7'){
-	 	$command = "export PGPASSWORD=\"$db{pass}\"; pg_restore -c -O -x -n public -U $db{user} -d $db{name} $restore";
+	 	$command = "export PGPASSWORD=\"$db{pass}\";\n".
+			"sudo -u postgres psql -U postgres -c \"select pg_terminate_backend(procpid) from pg_stat_activity where datname='$db{name}'\";\n".
+			"sudo -u postgres psql -U postgres -c \"drop database $db{name}\";\n".
+			"sudo -u postgres createdb -O $db{user} -E UTF8 $db{name};\n".
+			"pg_restore -c -O -x -n public -U $db{user} -d $db{name} $restore;";
 	} else {
 		print "Don't know how to restore type: $db{type}\n";
 		exit;
 	}
 
 	print "Now doing a restore of\n";
-	print "Command: $command\n";
+	print "Command: \n$command\n";
 	system ($command) == 0  || die;
 
 } else {
