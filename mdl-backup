@@ -33,15 +33,18 @@ if ($restore){
 			"sudo -u postgres psql -h $db{host} -U postgres -c 'drop database \"$db{name}\"';\n".
 			"sudo -u postgres createdb -h $db{host} -O $db{user} -E UTF8 $db{name};\n".
 			#"pg_restore -O -x -n public -U $db{user} -d $db{name} $restore;";
-			"pg_restore -n public -h $db{host} -U $db{user} -d $db{name} $restore;";
+			#"pg_restore -n public -h $db{host} -U $db{user} -d $db{name} $restore;";
+			"pg_restore  -h $db{host} -U $db{user} -d $db{name} $restore;";
 	} else {
 		print "Don't know how to restore type: $db{type}\n";
 		exit;
 	}
 
 	print "Now doing a restore of\n";
-	print "Command: \n$command\n";
-	system ($command) == 0  || die;
+	foreach $cmd (split "\n", $command){
+		print "Command: $cmd\n";
+		system ($cmd) == 0  || die;
+	}
 
 } else {
 	use Data::Dumper;
