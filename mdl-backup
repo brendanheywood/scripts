@@ -12,11 +12,11 @@ open CONF, 'config.php';
 my %db = ();
 
 foreach $line (<CONF>){
-	if($line =~ /(^\$CFG->db(.*?)\s.*= '(.*)')/){
+	if($line =~ /(^\$CFG->db(.*?)\s.*= '(.*?)')/){
 		$key = $2;
 		$val = $3;
 		$db{$key} = $val;
-		print "Line: Key '$key' Val '$val' \n";
+		print "Line: Key '$key' Val '$val'--- \n";
 	}
 }
 close CONF;
@@ -27,7 +27,7 @@ if ($restore){
 	
 	if($db{type} eq 'mysql'){
 		$command = "mysql -u $db{user} --password=$db{pass} $db{name} < $restore";
-	} elsif($db{type} eq 'postgres7'){
+	} elsif($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
 	 	$command = "export PGPASSWORD=\"$db{pass}\";\n".
 			"sudo -u postgres psql -h $db{host} -U postgres -c \"select pg_terminate_backend(procpid) from pg_stat_activity where datname='$db{name}'\";\n".
 			"sudo -u postgres psql -h $db{host} -U postgres -c 'drop database \"$db{name}\"';\n".
@@ -58,7 +58,7 @@ if ($restore){
 	$backup_file = "/tmp/$host\_$db{type}_$db{host}_$db{name}_$date.sql";
 	if($db{type} eq 'mysql'){
 		$command = "mysqldump --skip-lock-tables -u $db{user} --password=$db{pass} $db{name} -r $backup_file";
-	} elsif($db{type} eq 'postgres7'){
+	} elsif($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
 	# This isn't terribly secure but we're generally dealing with dev boxes so no-one else should be around
 	 	$command = "export PGPASSWORD=\"$db{pass}\"; pg_dump -Fc -O $db{name} -U $db{user} -f $backup_file -h $db{host}";
 	} else {
