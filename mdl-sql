@@ -23,8 +23,8 @@ close CONF;
 
 	
 print "Login:\n";
-if($db{type} eq 'mysql'){
-  $command = "mysql -u $db{user} --password=$db{pass} $db{name}";
+if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
+  $command = "mysql -u $db{user} --password='$db{pass}' $db{name}";
 } elsif ($db{type} eq 'postgres7'){
 	$command = "export PGPASSWORD=\"$db{pass}\";\n".
 #		"sudo -u postgres psql -h $db{host} $db{name} $db{user}";
