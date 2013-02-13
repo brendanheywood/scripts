@@ -16,7 +16,7 @@ foreach $line (<CONF>){
 		$key = $2;
 		$val = $3;
 		$db{$key} = $val;
-#		print "Line: Key '$key' Val '$val' \n";
+		print "Line: Key '$key' Val '$val' \n";
 	}
 }
 close CONF;
@@ -24,15 +24,12 @@ close CONF;
 	
 print "Login:\n";
 if($db{type} eq 'mysql'){
-  $command = "mysql -u $db{user} --password=$db{pass} $db{name}";
-} elsif ($db{type} eq 'postgres7'){
-	$command = "export PGPASSWORD=\"$db{pass}\";\n".
+    $command = "mysql -u $db{user} --password=$db{pass} $db{name}";
+} elsif ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
+    $command = "export PGPASSWORD=\"$db{pass}\";\n".
 #		"sudo -u postgres psql -h $db{host} $db{name} $db{user}";
 		"psql -h $db{host} $db{name} $db{user}";
 }
-if ($db{type} eq 'pgsql'){
-  $command = "psql $db{name} $db{user} ";
-}
-print "$command\n";
+print "Command: $command\n";
 system ($command) == 0  || die;
 
