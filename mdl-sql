@@ -23,7 +23,7 @@ close CONF;
 
 	
 print "Login:\n";
-if($db{type} eq 'mysql'){
+if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
     $command = "mysql -u $db{user} --password=$db{pass} $db{name}";
 } elsif ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
     $command = "export PGPASSWORD=\"$db{pass}\";\n".
