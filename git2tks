@@ -67,6 +67,7 @@ push @ret, findCommits('.', 'moodle', 'release-2.2', $user, $days);
 
 my $lastdate='';
 my $lasttime = $starttime;
+my $daytotal = 0;
 
 @ret = sort { $a->[0] <=> $b->[0] or $b->[3] cmp $a->[3] } @ret;
 
@@ -75,7 +76,7 @@ sub ft {
     my $dh = floor($hours);
     my $dm = $hours - $dh;
 
-    return sprintf "%4s:%02d", $dh, $dm * 60;
+    return sprintf "%2s:%02d", $dh, $dm * 60;
 }
 
 foreach my $commit (@ret){
@@ -86,19 +87,27 @@ foreach my $commit (@ret){
     my $date = Date::Format::time2str("\n%Y-%m-%d # %A \n",$com[0], 'GMT');
     my $time = Date::Format::time2str("%H:%M ",$com[0], 'AEST');
     if ($date ne $lastdate){
-        print "$date\n";
+
+        if ($daytotal){
+            print "#               ".ft($daytotal)."   total hours\n";
+        }
+        print "$date";
         $lasttime = $starttime;
+        $daytotal = 0;
     }
     $time = substr($time,0,2) + substr($time,3,2)/60 ;
     my $delta = $time - $lasttime;
+    $daytotal += $delta;
     if ($delta == 0){ next; } # this collases commits on two branches
 #    print "$time == $com[1] \n";
-    printf "%-15s %s    %s (%s: %s)\n", $com[3], ft($delta), $com[2], $com[5], $com[4];
+#    printf "%-15s %s-%s   %s (%s: %s)\n", $com[3], ft($lasttime), ft($time), $com[2], $com[5], $com[4];
+    printf "%-15s %s   %s (%s: %s)\n", $com[3], ft($delta), $com[2], $com[5], $com[4];
 
 
     $lastdate = $date;
     $lasttime = $time;
 }
+print "#               ".ft($daytotal)."   total hours\n\n";
 
 
 # run it across all repo's
@@ -107,6 +116,8 @@ foreach my $commit (@ret){
 # merge together, sort by date
 # assume a start time of X - make this a param
 # find the diff from the last commit
+# show total for the day
+# show the start and end time, so it can be edited
 
 # if a comment is in both master AND a release branch, which wins?
 
