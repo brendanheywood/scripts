@@ -2,29 +2,39 @@
 
 use strict;
 use Data::Dumper;
+use Date::Parse ();
+use Date::Format ();
+use POSIX;
+
+my $days  = 8; # how far back in time to we look?
+my $user  = `whoami`;
+my $starttime = 10; # What hour of the day do you start at?
+chomp $user;
+
 
 sub usage {
 
     print <<EOF;
- Run this is a clean git working dir and it will spit
- out your commits in a format for import into tks
+
+ Run this *anywhere* on a OUA VM and it will dump your commits in a format for import into tks
 
  It will:
   * pull data from all 4 OUA repos
   * pull data from master and any release branches (so only counts stuff which is 'ready for deplay'
   * can be run from anywhere
+  * 
+
+$0 -d 14  # go back 14 days
+$0 -s 8   # I start at 8am
+
 
 EOF
     exit;
 }
 
-my $days = 5;
-my $user = `whoami`;
-chomp $user;
-
 
 sub findCommits {
-    my ($cwd, $branch, $user, $days) = @_;
+    my ($cwd, $system, $branch, $user, $days) = @_;
 
     my @commits;
 
@@ -33,14 +43,16 @@ sub findCommits {
     my @res = split '\n', `$cmd`;
 
     while ($#res > -1){
-        my $commit = substr(shift @res,7,10);
-        my $author = shift @res;
-        my $date   = substr(shift @res,8,24);
-        my $dud    = shift @res;
-        my $msg    = substr(shift @res, 4);
-        my $dud    = shift @res;
+        my $commit    = substr(shift @res,7,10);
+        my $author    = shift @res;
+        my $date      = substr(shift @res,8);
+        my $timestamp = Date::Parse::str2time($date);
+        my $dud       = shift @res;
+        my $msg       = substr(shift @res, 4);
+        my $dud       = shift @res;
 
-        push @commits, ($date,$msg,$branch,$commit);
+        my @stuff = ($timestamp,$date,$msg,$branch,$commit, $system);
+        push @commits, \@stuff; 
 
     }
     return @commits;
@@ -48,15 +60,54 @@ sub findCommits {
 }
 
 my @ret;
-push @ret, findCommits('.', 'master', $user, $days);
-push @ret, findCommits('.', 'release-2.2', $user, $days);
+push @ret, findCommits('.', 'moodle', 'master', $user, $days);
+push @ret, findCommits('.', 'moodle', 'release-2.2', $user, $days);
 
-print Dumper (@ret);
+#print Dumper (@ret);
+
+my $lastdate='';
+my $lasttime = $starttime;
+
+@ret = sort { $a->[0] <=> $b->[0] or $b->[3] cmp $a->[3] } @ret;
+
+sub ft {
+    my ($hours) = @_;
+    my $dh = floor($hours);
+    my $dm = $hours - $dh;
+
+    return sprintf "%4s:%02d", $dh, $dm * 60;
+}
+
+foreach my $commit (@ret){
+
+    my @com = @$commit;
+#print Dumper ($commit);
+
+    my $date = Date::Format::time2str("\n%Y-%m-%d # %A \n",$com[0], 'GMT');
+    my $time = Date::Format::time2str("%H:%M ",$com[0], 'AEST');
+    if ($date ne $lastdate){
+        print "$date\n";
+        $lasttime = $starttime;
+    }
+    $time = substr($time,0,2) + substr($time,3,2)/60 ;
+    my $delta = $time - $lasttime;
+    if ($delta == 0){ next; } # this collases commits on two branches
+#    print "$time == $com[1] \n";
+    printf "%-15s %s    %s (%s: %s)\n", $com[3], ft($delta), $com[2], $com[5], $com[4];
+
+
+    $lastdate = $date;
+    $lasttime = $time;
+}
 
 
 # run it across all repo's
 # run it on master
 # run it on any branches that match 'releaseX'
+# merge together, sort by date
+# assume a start time of X - make this a param
+# find the diff from the last commit
 
+# if a comment is in both master AND a release branch, which wins?
 
 
