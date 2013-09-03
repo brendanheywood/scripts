@@ -1,4 +1,25 @@
 #!/usr/bin/perl
+#
+# TODO 
+# * Config it to run across multiple repos
+#
+
+sub usage {
+    print <<EOF;
+ Run this anywhere and it will dump your commits in a format for import into tks
+
+ It will:
+  * pull data from all 4 OUA repos
+  * pull data from all local branches, if merged, each commit is only shown once
+  * branch names are sanitized and become your tksrc WR aliases
+  * can be run from anywhere NOT DONE
+
+$0 -d 14   # go back 14 days
+$0 -s 8    # I start at 8am
+$0 -u jim  # Show someone
+EOF
+    exit;
+}
 
 use strict;
 use Data::Dumper;
@@ -12,26 +33,6 @@ my $user  = `whoami`;
 my $starttime = 10; # What hour of the day do you start at?
 chomp $user;
 
-sub usage {
-
-    print <<EOF;
-
- Run this *anywhere* on a OUA VM and it will dump your commits in a format for import into tks
-
- It will:
-  * pull data from all 4 OUA repos
-  * pull data from all local branches, if merged, each commit is only shown once
-  * branch names are sanitized and become your tksrc WR aliases
-  * can be run from anywhere NOT DONE
-
-$0 -d 14   # go back 14 days
-$0 -s 8    # I start at 8am
-$0 -u jim  # Show someone
-
-
-EOF
-    exit;
-}
 
 GetOptions (
     "d|days=f"   => \$days,
@@ -42,15 +43,10 @@ GetOptions (
 
 sub findCommits {
     my ($cwd, $system, $branch, $user, $days) = @_;
-
     my @commits;
-
     my $cmd = "git log --since=".$days.".days --author=$user $branch";
-#    print "==$cmd==\n";
     my @res = split '\n', `$cmd`;
-
     $branch =~ s/\./-/g;
-#    print Dumper (@res);
 
     while ($#res > -1){
         my $commit    = substr(shift @res,7,10);
@@ -66,21 +62,15 @@ sub findCommits {
 
         my @stuff = ($timestamp,$date,$msg,$branch,$commit, $system);
         push @commits, \@stuff; 
-
     }
     return @commits;
-
 }
 
 
 sub findCommitsForRepo {
-
     my ($cwd, $system, $user, $days) = @_;
     my @coms;
-
     my @branches = split '\n', `git branch`;
-
-#print Dumper(@branches);
     foreach my $branch (@branches){
         $branch = substr($branch,2);
         push @coms, findCommits('.', 'moodle', $branch, $user, $days);
@@ -89,7 +79,6 @@ sub findCommitsForRepo {
 }
 
 my @commits = findCommitsForRepo('.', 'moodle', $user, $days);
-
 
 my $lastdate='';
 my $lasttime = $starttime;
@@ -101,19 +90,16 @@ sub ft {
     my ($hours) = @_;
     my $dh = floor($hours);
     my $dm = $hours - $dh;
-
     return sprintf "%2s:%02d", $dh, $dm * 60;
 }
 
 foreach my $commit (@commits){
 
     my @com = @$commit;
-#print Dumper ($commit);
-
     my $date = Date::Format::time2str("\n%Y-%m-%d # %A \n",$com[0], 'GMT');
     my $time = Date::Format::time2str("%H:%M ",$com[0], 'AEST');
-    if ($date ne $lastdate){
 
+    if ($date ne $lastdate){
         if ($daytotal){
             print "#               ".ft($daytotal)."   total hours\n";
         }
@@ -121,6 +107,7 @@ foreach my $commit (@commits){
         $lasttime = $starttime;
         $daytotal = 0;
     }
+
     $time = substr($time,0,2) + substr($time,3,2)/60 ;
     my $delta = $time - $lasttime;
     $daytotal += $delta;
@@ -131,9 +118,4 @@ foreach my $commit (@commits){
     $lasttime = $time;
 }
 print "#               ".ft($daytotal)."   total hours\n\n";
-
-# TODO 
-# run it across all repo's
-# assume a start time of X - make this a param
-
 
