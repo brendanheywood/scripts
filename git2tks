@@ -123,7 +123,7 @@ foreach my $commit (@commits){
     my $delta = $time - $lasttime;
     $daytotal += $delta;
 #    if ($delta == 0){ next; } # this collapses commits on two branches
-    printf "%-15s  %.2f   %s (%s: %s)\n", $com[3], $delta, $com[2], $com[5], $com[4];
+    printf "%-15s%6.2f   %s (%s: %s)\n", $com[3], $delta, $com[2], $com[5], $com[4];
 
     $lastdate = $date;
     $lasttime = $time;
