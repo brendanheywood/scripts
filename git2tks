@@ -2,15 +2,15 @@
 
 use strict;
 use Data::Dumper;
-use Date::Parse ();
 use Date::Format ();
+use Date::Parse ();
+use Getopt::Long;
 use POSIX;
 
-my $days  = 8; # how far back in time to we look?
+my $days  = 7; # how far back in time to we look?
 my $user  = `whoami`;
 my $starttime = 10; # What hour of the day do you start at?
 chomp $user;
-
 
 sub usage {
 
@@ -20,17 +20,24 @@ sub usage {
 
  It will:
   * pull data from all 4 OUA repos
-  * pull data from master and any release branches (so only counts stuff which is 'ready for deplay'
-  * can be run from anywhere
-  * 
+  * pull data from all local branches, if merged, each commit is only shown once
+  * branch names are sanitized and become your tksrc WR aliases
+  * can be run from anywhere NOT DONE
 
-$0 -d 14  # go back 14 days
-$0 -s 8   # I start at 8am
+$0 -d 14   # go back 14 days
+$0 -s 8    # I start at 8am
+$0 -u jim  # Show someone
 
 
 EOF
     exit;
 }
+
+GetOptions (
+    "d|days=f"   => \$days,
+    "s|start=f"  => \$starttime,
+    "u|user=s"   => \$user,
+) or die usage();
 
 
 sub findCommits {
@@ -42,6 +49,7 @@ sub findCommits {
 #    print "==$cmd==\n";
     my @res = split '\n', `$cmd`;
 
+    $branch =~ s/\./-/g;
 #    print Dumper (@res);
 
     while ($#res > -1){
@@ -80,20 +88,14 @@ sub findCommitsForRepo {
     return @coms;
 }
 
-my @ret;
-push @ret, findCommitsForRepo('.', 'moodle', $user, $days);
+my @commits = findCommitsForRepo('.', 'moodle', $user, $days);
 
-#push @ret, findCommits('.', 'moodle', 'master', $user, $days);
-#push @ret, findCommits('.', 'moodle', 'release-2.2', $user, $days);
-
-#print Dumper (@ret);
-#exit;
 
 my $lastdate='';
 my $lasttime = $starttime;
 my $daytotal = 0;
 
-@ret = sort { $a->[0] <=> $b->[0] or $b->[3] cmp $a->[3] } @ret;
+@commits = sort { $a->[0] <=> $b->[0] or $b->[3] cmp $a->[3] } @commits;
 
 sub ft {
     my ($hours) = @_;
@@ -103,7 +105,7 @@ sub ft {
     return sprintf "%2s:%02d", $dh, $dm * 60;
 }
 
-foreach my $commit (@ret){
+foreach my $commit (@commits){
 
     my @com = @$commit;
 #print Dumper ($commit);
@@ -122,27 +124,16 @@ foreach my $commit (@ret){
     $time = substr($time,0,2) + substr($time,3,2)/60 ;
     my $delta = $time - $lasttime;
     $daytotal += $delta;
-    if ($delta == 0){ next; } # this collases commits on two branches
-#    print "$time == $com[1] \n";
-#    printf "%-15s %s-%s   %s (%s: %s)\n", $com[3], ft($lasttime), ft($time), $com[2], $com[5], $com[4];
-    printf "%-15s %s   %s (%s: %s)\n", $com[3], ft($delta), $com[2], $com[5], $com[4];
-
+#    if ($delta == 0){ next; } # this collapses commits on two branches
+    printf "%-15s  %.2f   %s (%s: %s)\n", $com[3], $delta, $com[2], $com[5], $com[4];
 
     $lastdate = $date;
     $lasttime = $time;
 }
 print "#               ".ft($daytotal)."   total hours\n\n";
 
-
+# TODO 
 # run it across all repo's
-# run it on master
-# run it on any branches that match 'releaseX'
-# merge together, sort by date
 # assume a start time of X - make this a param
-# find the diff from the last commit
-# show total for the day
-# show the start and end time, so it can be edited
-
-# if a comment is in both master AND a release branch, which wins?
 
 
