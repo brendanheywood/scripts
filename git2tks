@@ -1,0 +1,62 @@
+#!/usr/bin/perl
+
+use strict;
+use Data::Dumper;
+
+sub usage {
+
+    print <<EOF;
+ Run this is a clean git working dir and it will spit
+ out your commits in a format for import into tks
+
+ It will:
+  * pull data from all 4 OUA repos
+  * pull data from master and any release branches (so only counts stuff which is 'ready for deplay'
+  * can be run from anywhere
+
+EOF
+    exit;
+}
+
+my $days = 5;
+my $user = `whoami`;
+chomp $user;
+
+
+sub findCommits {
+    my ($cwd, $branch, $user, $days) = @_;
+
+    my @commits;
+
+    my $cmd = "git log --since=".$days.".days --author=$user $branch";
+#    print "==$cmd==\n";
+    my @res = split '\n', `$cmd`;
+
+    while ($#res > -1){
+        my $commit = substr(shift @res,7,10);
+        my $author = shift @res;
+        my $date   = substr(shift @res,8,24);
+        my $dud    = shift @res;
+        my $msg    = substr(shift @res, 4);
+        my $dud    = shift @res;
+
+        push @commits, ($date,$msg,$branch,$commit);
+
+    }
+    return @commits;
+
+}
+
+my @ret;
+push @ret, findCommits('.', 'master', $user, $days);
+push @ret, findCommits('.', 'release-2.2', $user, $days);
+
+print Dumper (@ret);
+
+
+# run it across all repo's
+# run it on master
+# run it on any branches that match 'releaseX'
+
+
+
