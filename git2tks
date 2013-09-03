@@ -42,9 +42,14 @@ sub findCommits {
 #    print "==$cmd==\n";
     my @res = split '\n', `$cmd`;
 
+#    print Dumper (@res);
+
     while ($#res > -1){
         my $commit    = substr(shift @res,7,10);
         my $author    = shift @res;
+        if (substr($author,0,5) eq 'Merge'){
+            $author    = shift @res;
+        }
         my $date      = substr(shift @res,8);
         my $timestamp = Date::Parse::str2time($date);
         my $dud       = shift @res;
@@ -59,11 +64,30 @@ sub findCommits {
 
 }
 
+
+sub findCommitsForRepo {
+
+    my ($cwd, $system, $user, $days) = @_;
+    my @coms;
+
+    my @branches = split '\n', `git branch`;
+
+#print Dumper(@branches);
+    foreach my $branch (@branches){
+        $branch = substr($branch,2);
+        push @coms, findCommits('.', 'moodle', $branch, $user, $days);
+    }
+    return @coms;
+}
+
 my @ret;
-push @ret, findCommits('.', 'moodle', 'master', $user, $days);
-push @ret, findCommits('.', 'moodle', 'release-2.2', $user, $days);
+push @ret, findCommitsForRepo('.', 'moodle', $user, $days);
+
+#push @ret, findCommits('.', 'moodle', 'master', $user, $days);
+#push @ret, findCommits('.', 'moodle', 'release-2.2', $user, $days);
 
 #print Dumper (@ret);
+#exit;
 
 my $lastdate='';
 my $lasttime = $starttime;
