@@ -5,18 +5,22 @@
 #
 
 sub usage {
+    use File::Basename;
+    my $cmd = basename($0);
     print <<EOF;
- Run this anywhere and it will dump your commits in a format for import into tks
+Converts your git commits into TKS format
 
- It will:
-  * pull data from all 4 OUA repos
-  * pull data from all local branches, if merged, each commit is only shown once
-  * branch names are sanitized and become your tksrc WR aliases
-  * can be run from anywhere NOT DONE
+It will:
+  * pull data from current repo
+  * pull data from all local branches, each duplicate commit will be present
+    but with zero time (tks ignores it but you can manipulate it)
+  * branch names are sanitized and become your .tksrc WR aliases
+  * Assumes we start useful work at 10am (emails etc should be a separate WR record)
 
-$0 -d 14   # go back 14 days
-$0 -s 8    # I start at 8am
-$0 -u jim  # Show someone
+> $cmd -d 14   # show 14 days (default to 7)
+> $cmd -s 8    # I start at 8am (default 10am)
+> $cmd -u jim  # Show someone else's data
+
 EOF
     exit;
 }
@@ -30,6 +34,7 @@ use POSIX;
 
 my $days  = 7; # how far back in time to we look?
 my $user  = `whoami`;
+my $help = 0;
 my $starttime = 10; # What hour of the day do you start at?
 chomp $user;
 
@@ -38,7 +43,13 @@ GetOptions (
     "d|days=f"   => \$days,
     "s|start=f"  => \$starttime,
     "u|user=s"   => \$user,
+    "h|help"     => \$help,
 ) or die usage();
+
+if( $help ){
+    usage();
+    exit;
+}
 
 
 sub findCommits {
@@ -118,4 +129,5 @@ foreach my $commit (@commits){
     $lasttime = $time;
 }
 print "#               ".ft($daytotal)."   total hours\n\n";
+
 
