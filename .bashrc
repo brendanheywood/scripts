@@ -1,0 +1,3 @@
+
+alias l='ls -CFa'
+
