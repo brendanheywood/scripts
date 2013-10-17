@@ -1,0 +1,6 @@
+
+# password after this is 'admin'
+
+update mdl_user set password='21232f297a57a5a743894a0e4a801fc3' where username='admin';
+
+
