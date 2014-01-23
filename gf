@@ -26,7 +26,7 @@ if ($#ARGV ne -1){
 my $BLINK = color('reverse');
 my $RESET = color('reset');
 
-my $cmd = "git -c color.ui=always log -p -S'$grep' --full-diff -- . | sed -e 's/$grep/$BLINK\&$RESET/' | less -R ";
-print "$cmd\n";
+my $cmd = "git -c color.ui=always log -p -S'$grep' --full-diff -- . | sed -e 's/$grep/$BLINK\&$RESET/' | less -R";
+#print "$cmd\n";
 system($cmd);
 
