@@ -1,0 +1,63 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use HTTP::Request;
+use LWP::UserAgent;
+use XML::Simple;
+use Data::Dumper;
+use Config::IniFiles;
+
+my $tksrc = Config::IniFiles->new( -file => $ENV{"HOME"} ."/.tksrc" );
+my $jira = $tksrc->val( 'jira', 'host' );
+my $user = $tksrc->val( 'jira', 'user' );
+my $pass = $tksrc->val( 'jira', 'pass' );
+
+if (!$jira){
+    print <<EOF;
+This logs into Jira and grabs your activity feed and converts it into a text
+format close enough to tks format to let you edit from there.
+
+WARNING: Jira's feed a *slow*, this will take 10-20 seconds to run
+
+To use this create a section in your .tksrc file like this:
+
+[jira]
+host = https://jira.open.edu.au/
+user = brendan.heywood
+pass = pa\$wrD
+EOF
+    exit;
+}
+
+my $maxresults = 100;
+my $url = $jira.'activity?maxResults='.$maxresults.'&streams=user+IS+'.$user.'&os_authType=basic';
+my $req = HTTP::Request->new('GET',$url);
+my $ua = LWP::UserAgent->new;
+$req->authorization_basic($user, $pass); 
+my $res = $ua->request($req);
+my $xml = $res->content;
+my $ref = XMLin($xml);
+my @entries = values %{ $ref->{'entry'} };
+@entries = sort { $a->{'published'} cmp $b->{'published'} } @entries;
+
+my $lastdate = '';
+my %today;
+foreach my $entry ( @entries ){
+
+    my $issue = $entry->{'activity:object'}->{'title'}->{'content'} ||
+                $entry->{'activity:target'}->{'title'}->{'content'} || '';
+    my $cat = $entry->{'category'}->{'term'};
+    my $date = substr($entry->{'published'},0,10);
+
+    if ($date ne $lastdate){
+        print "\n$date\n  ";
+    }
+
+    if (!$today{$issue}){
+        print "$issue ";
+    }
+    $today{$issue} = 1;
+    $lastdate = $date;
+}
+print "\n";
+
