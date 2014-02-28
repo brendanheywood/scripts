@@ -26,10 +26,16 @@ host = https://jira.open.edu.au/
 user = brendan.heywood
 pass = pa\$wrD
 EOF
+
+$0 [entries] - can tell jira to look back N entries ~ 20 per day
     exit;
 }
 
 my $maxresults = 100;
+if ($ARGV[0]){
+    $maxresults = $ARGV[0];
+}
+
 my $url = $jira.'activity?maxResults='.$maxresults.'&streams=user+IS+'.$user.'&os_authType=basic';
 my $req = HTTP::Request->new('GET',$url);
 my $ua = LWP::UserAgent->new;
