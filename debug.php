@@ -1,18 +1,36 @@
 <?php
 /*
 
-This is useful in debugging the White Screen of Death
+Behold ...  the 'UBER' LOGGER
 
-It tells php to really *really*, no just f$#%^ing really, log your error, srzly
 
-just do this where ever you want:
+This is useful in debugging the White Screen of Death, or cases where the there
+ is no error log, or if the error log doesn't tell you where the error came from.
+
+It tells php to really *really*, no just f$#%^ing really, log your error, srzly.
+It also gives you a full stack trace and the URL which caused it (good for 
+isolating when it is actually a image or js request which is causing the error,
+not the main page)
+
+Just add this early in your page, it's already in local moodle config just uncomment it:
 
 include('/var/www/common/dev-conf/debug.php');
 
+NOTE: If Moodle/drupal/whatever also creates it own handlers, add this script AFTER them
+as this will chain to the existing handler.
 
 
 */
 
+
+/**
+ * A convenience log function
+ *
+ * @$d an object or var to dump to error log with extra context info
+ * @$t if true also print a nice stack trace
+ *
+ * If you commit a call to this you need to buy someone a beer, BAD!
+ */
 function e($d, $t = false){
     $trace = debug_backtrace();
 
@@ -35,6 +53,7 @@ function e($d, $t = false){
             $stack .= $node['function'] . "()" . PHP_EOL;
             $i++;
         }
+        $stack .= "\n URL: ".$_SERVER['REQUEST_URI'];
     }
     error_log($stack);
 }
@@ -48,7 +67,7 @@ function ShutdownHandler()
 {
     if(@is_array($error = @error_get_last()))
     {
-        return(@call_user_func_array('ErrorHandler', $error));
+        return(@call_user_func_array('UberErrorHandler', $error));
     };
 
     return(TRUE);
@@ -59,7 +78,10 @@ register_shutdown_function('ShutdownHandler');
 // ----------------------------------------------------------------------------------------------------
 // - Error Handler
 // ----------------------------------------------------------------------------------------------------
-function ErrorHandler($type, $message, $file, $line)
+
+$old_error_handler = null;
+
+function UberErrorHandler($type, $message='', $file='unknownfile', $line=0)
 {
     $_ERRORS = Array(
         0x0001 => 'E_ERROR',
@@ -81,12 +103,32 @@ function ErrorHandler($type, $message, $file, $line)
 
     if(!@is_string($name = @array_search($type, @array_flip($_ERRORS))))
     {
-        $name = 'E_UNKNOWN';
+        $name = 'E_UNKNOWN:'.$type;
     };
+    if ($name != 'E_NOTICE')
+    error_log(@sprintf("UberErrorHandler: %s Error in %s:%d  %s\n URL: %s\n", $name, $file, $line, $message, $_SERVER['REQUEST_URI']));
 
-#    return(print(@sprintf("%s Error in file \xBB%s\xAB at line %d: %s\n", $name, @basename($file), $line, $message)));
-    error_log(@sprintf("%s Error in %s:%d  %s\n", $name, $file, $line, $message));
 };
 
-$old_error_handler = set_error_handler("ErrorHandler");
+$old_error_handler = set_error_handler("UberErrorHandler");
 
+
+
+// ----------------------------------------------------------------------------------------------------
+// - Exception Handler
+// ----------------------------------------------------------------------------------------------------
+
+$old_exception_handler = null;
+
+function UberExceptionHandler($ex) {
+
+    global $old_exception_handler;
+    error_log (sprintf('UberExceptionHandler: %s', $_SERVER['REQUEST_URI']));
+
+    // Now call the old error handler. Moodle registers it's own default handler which does
+    // stuff like closing DB transactions, so we just want to augment that instead of replace it
+    call_user_func( $old_exception_handler, $ex);
+}
+
+
+$old_exception_handler = set_exception_handler("UberExceptionHandler");
