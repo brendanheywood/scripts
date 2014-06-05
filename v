@@ -23,6 +23,9 @@ my $line = '';
 if ($file =~ /(.*):(\d+).*/){
     $file = $1;
     $line = "+$2";
+} elsif ($file =~ /(.*)-(\d+).*/){
+    $file = $1;
+    $line = "+$2";
 }
 my $cmd = "vim $line $file";
 #print "$cmd\n";
