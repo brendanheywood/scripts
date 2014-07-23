@@ -14,6 +14,7 @@ my $version;
 if (-e 'version.php'){
 
     $version = `git log --oneline  version.php | head -n 1`;
+    my $commit = substr($version,0,7);
     chomp $version;
     $version =~ /(\S+)$/;
     $version = "v$1";
@@ -21,11 +22,20 @@ if (-e 'version.php'){
     my $verify = `git tag --list | grep '$version'`;
     chomp $verify;
     if ($version ne $verify){
-        print "Can't find a tag ($version isn't a tag)\n";
-        exit;
-    }
-}
+        print "WARNING: Can't find a version tag ($version isn't a tag)\n";
+        print "For this to work, you'll need the release tags from moodle HQ locally, so\n";
+        print "something like 'git remote add moodle git\@github.com:moodle/moodle.git'\n";
+        print "and then 'git fetch --tags moodle'\n\n";
+        print "or for totara '??'\n";
+        print "and then 'git fetch --tags totara'\n\n";
+        print "Using '$commit' instead of tag: $version\n";
+        $version = $commit;
+    } else {
 
+    }
+
+
+}
 
 print "Auto detected upstream moodle version '$version'\n";
 
