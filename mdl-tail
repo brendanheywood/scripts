@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+#
+# From a moodle dir, auto detect the log file and tail it
+
+use Cwd;
+
+if (!-e 'config.php'){
+	die "Can't find a config.php";
+}
+# find current workig dir
+my $cwd = getcwd;
+
+my $apache =  `grep '$cwd' /etc/apache2/sites-enabled/*`;
+$apache =~ /^(.*):/;
+
+my $conf = $1;
+my $log =  `grep ErrorLog $conf`;
+
+$log =~ /ErrorLog(.*)$/;
+$log = $1;
+$log =~ s/\$\{APACHE_LOG_DIR\}/\/var\/log\/apache2/;
+
+print "$log \n";
+
+system("tail -f $log");
+
