@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+
+# Groups columns based on common values into a tree structure
+# Great for visualising how heirarcical some data is
+
+use strict;
+use Data::Dumper;
+
+my $gap       = '   ';
+my $pipe      = '│  ';
+my $child     = '├──';
+my $lastchild = '└──';
+
+my $delim = ','; # option to change
+
+my @rows;
+my $numcols;
+my $output = '';
+my @set;
+my @last;
+
+foreach my $line (<>){
+
+    chop $line;
+    my @cols = split $delim, $line;
+
+    if (!$numcols){
+        $numcols = $#cols+1;
+    }
+
+    push @rows, [@cols];
+}
+
+# Remove dups
+foreach my $row (@rows){
+
+    my @cols = @{ $row };
+    for(my $c=0; $c<$numcols; $c++){
+
+        if ($cols[$c] eq $last[$c]){
+            $row->[$c] = '';
+        } else {
+            last;
+        }
+    }
+    @last = @cols;
+}
+
+#$numcols = 3;
+
+
+for(my $r = $#rows; $r >=0; $r--){
+
+    my $row = $rows[$r];
+    my @row = @{ $row }; 
+
+    my $c;
+    for($c=$numcols-1; $c>=0; $c--){
+        my $part = '';
+        my $s;
+
+        if ($row[$c] eq ''){
+            next;
+        }
+
+        $set[$c+1] = 0;
+
+        for($s=0; $s< $c; $s++){
+            $part .= $set[$s] ? $pipe : $gap; 
+        }
+        $part .= $set[$s] ? $child : $lastchild; 
+
+        $part .= $row[$c];
+        $part .= "\n";
+        $output = $part.$output;
+
+        $set[$c] = 1;
+    }
+
+}
+
+print $output;
