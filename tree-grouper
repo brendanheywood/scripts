@@ -12,12 +12,18 @@ my $maxcols;
 my $help;
 my $width;
 my $info = <<EOF;
-Usage: $0
+Usage:
+  cat example.csv > tree-grouper
 
 Options:
- -c --columns [number] Only transform the first N columns into a tree
- -w --width [number] The width of each tree fork in chars (default 4)
- -h --help Show help
+ -c --columns [number]
+     Only transform the first N columns into a tree
+
+ -w --width [number]
+     The width of each tree fork in chars (default 4)
+
+ -h --help
+     This help page
 
 EOF
 GetOptions ("columns|c=i" => \$maxcols,
