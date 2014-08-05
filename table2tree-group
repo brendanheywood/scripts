@@ -5,11 +5,37 @@
 
 use strict;
 use Data::Dumper;
+use Getopt::Long;
 
-my $gap       = '   ';
-my $pipe      = '│  ';
-my $child     = '├──';
-my $lastchild = '└──';
+
+my $maxcols;
+my $help;
+my $width;
+my $info = <<EOF;
+Usage: $0
+
+Options:
+ -c --columns [number] Only transform the first N columns into a tree
+ -w --width [number] The width of each tree fork in chars (default 4)
+ -h --help Show help
+
+EOF
+GetOptions ("columns|c=i" => \$maxcols,
+            "width|w=i"   => \$width,
+            "help|h"      => \$help
+        )
+  or die("Error in command line arguments\n$info");
+
+if ($help){
+    print $info;
+    exit;
+}
+$width ||= 3;
+
+my $gap       = ' '.' 'x($width-1);
+my $pipe      = '│'.' 'x($width-1);
+my $child     = '├'.'─'x($width-1);
+my $lastchild = '└'.'─'x($width-1);
 
 my $delim = ','; # option to change
 
@@ -19,7 +45,7 @@ my $output = '';
 my @set;
 my @last;
 
-foreach my $line (<>){
+foreach my $line (<STDIN>){
 
     chop $line;
     my @cols = split $delim, $line;
@@ -30,6 +56,11 @@ foreach my $line (<>){
 
     push @rows, [@cols];
 }
+
+if ($maxcols && $maxcols < $numcols){
+    $numcols = $maxcols;
+}
+
 
 # Remove dups
 foreach my $row (@rows){
@@ -45,9 +76,6 @@ foreach my $row (@rows){
     }
     @last = @cols;
 }
-
-#$numcols = 3;
-
 
 for(my $r = $#rows; $r >=0; $r--){
 
@@ -80,3 +108,4 @@ for(my $r = $#rows; $r >=0; $r--){
 }
 
 print $output;
+
