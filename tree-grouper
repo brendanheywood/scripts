@@ -4,9 +4,11 @@
 # Great for visualising how heirarcical some data is
 
 use strict;
+use utf8;
 use Data::Dumper;
 use Getopt::Long;
 
+binmode STDOUT, ":utf8";
 
 my $maxcols;
 my $help;
@@ -51,6 +53,8 @@ my $output = '';
 my @set;
 my @last;
 
+my $maxCol = 0;
+
 foreach my $line (<STDIN>){
 
     chop $line;
@@ -74,6 +78,10 @@ foreach my $row (@rows){
     my @cols = @{ $row };
     for(my $c=0; $c<$numcols; $c++){
 
+        my $wid = length($cols[$c]) + length($pipe) * ($c+1);
+        if ($wid > $maxCol){
+            $maxCol = $wid;
+        }
         if ($cols[$c] eq $last[$c]){
             $row->[$c] = '';
         } else {
@@ -104,7 +112,11 @@ for(my $r = $#rows; $r >=0; $r--){
         }
         $part .= $set[$s] ? $child : $lastchild; 
 
-        $part .= $row[$c];
+        my $width = $maxCol - length($pipe)*( $c+1 ) ;
+        $part .= sprintf '%-'.$width.'s',$row[$c];
+#        if ($c eq $numcols-1){
+#            $part .= '   | '.$row[$c+1];
+#        }
         $part .= "\n";
         $output = $part.$output;
 
