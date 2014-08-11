@@ -1,6 +1,8 @@
 
 alias l='ls -CFa'
 
+alias o='xdg-open'
+
 alias grep='grep --color=auto'
 
 export PATH="$PATH:/home/brendan/scripts/"
