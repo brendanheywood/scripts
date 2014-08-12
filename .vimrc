@@ -11,14 +11,22 @@ Bundle 'gmarik/vundle'
 " git submodule add git@github.com:airblade/vim-gitgutter.git .vim/bundle/vim-gitgutter
 " Then add Bundle call above
 " After adding to above, in vim run :BundleInstall!
- 
-Bundle 'airblade/vim-gitgutter'
 
-" This makes the git +/- columnonthe left black background
-highlight clear SignColumn
+" This adds a nice +/- signs column on left
+Bundle 'airblade/vim-gitgutter'
 let g:gitgutter_realtime = 0
 let g:gitgutter_eager = 0
 
+" Adds the cool branch / commit aware coloured status line on the bottom
+Bundle 'bling/vim-airline'
+set laststatus=2
+
+
+" This sets 256 colours support needed for airline
+set t_Co=256
+
+" This makes the git +/- columnonthe left black background
+highlight clear SignColumn
 
 filetype on
 
