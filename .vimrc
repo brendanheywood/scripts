@@ -6,6 +6,12 @@ call vundle#rc()
 
 " Load vundle bundles
 Bundle 'gmarik/vundle'
+Bundle 'airblade/vim-gitgutter'
+
+" To add more
+" git submodule add git@github.com:airblade/vim-gitgutter.git .vim/bundle/vim-gitgutter
+" Then add Bundle call above
+" After adding to above, in vim run :BundleInstall!
 
 filetype on
 
