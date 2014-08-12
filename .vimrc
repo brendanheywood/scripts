@@ -6,12 +6,19 @@ call vundle#rc()
 
 " Load vundle bundles
 Bundle 'gmarik/vundle'
-Bundle 'airblade/vim-gitgutter'
 
 " To add more
 " git submodule add git@github.com:airblade/vim-gitgutter.git .vim/bundle/vim-gitgutter
 " Then add Bundle call above
 " After adding to above, in vim run :BundleInstall!
+ 
+Bundle 'airblade/vim-gitgutter'
+
+" This makes the git +/- columnonthe left black background
+highlight clear SignColumn
+let g:gitgutter_realtime = 0
+let g:gitgutter_eager = 0
+
 
 filetype on
 
