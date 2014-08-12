@@ -39,14 +39,22 @@ filetype on
 "  n... :  where to save the viminfo files
 set viminfo='10,\"100,:20,%,n~/.viminfo
 
+
+
 set number
 
 set mouse=a
+
+set showmatch
+
+set history=9999
 
 set shiftwidth=4
 set tabstop=4
 set softtabstop=4
 set expandtab
+
+
 set clipboard=unnamed
 
 function! ResCur()
