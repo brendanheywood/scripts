@@ -47,7 +47,8 @@ Bundle 'jasoncodes/ctrlp-modified.vim'
 nmap <C-m> :CtrlPModified<CR>
 
 
-
+" Show trailing whitespace eg at the end of this line is a crap which should be red  
+Bundle 'bronson/vim-trailing-whitespace'
 
 
 " End of bundle stuff
