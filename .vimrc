@@ -34,6 +34,7 @@ Bundle 'tomtom/tcomment_vim'
 " End of bundle stuff
 filetype on
 
+syntax on
 
 " Tell vim to remember certain things when we exit
 "  '10  :  marks will be remembered for up to 10 previously edited files
