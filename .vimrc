@@ -21,6 +21,12 @@ let g:gitgutter_eager = 0
 Bundle 'bling/vim-airline'
 set laststatus=2
 
+" Enable the list of buffers
+let g:airline#extensions#tabline#enabled = 1
+
+" Show just the filename
+let g:airline#extensions#tabline#fnamemod = ':t'
+
 
 " This sets 256 colours support needed for airline
 set t_Co=256
