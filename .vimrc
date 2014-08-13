@@ -40,6 +40,13 @@ Bundle 'tomtom/tcomment_vim'
 " Ctrl + P support like Sublime / atom
 Bundle 'kien/ctrlp.vim'
 
+" Ctrl + m shows modified files
+Bundle 'jasoncodes/ctrlp-modified.vim'
+nmap <C-m> :CtrlPModified<CR>
+
+
+
+
 
 " End of bundle stuff
 filetype on
