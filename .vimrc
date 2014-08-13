@@ -37,10 +37,12 @@ highlight clear SignColumn
 " This is for block code commenting / uncommenting, select text then press Ctrl + // to toggle
 Bundle 'tomtom/tcomment_vim'
 
-" Ctrl + P support like Sublime / atom
+" Ctrl + p support like Sublime / atom
 Bundle 'kien/ctrlp.vim'
+" Ctrl + r - search for most recently used files
+nmap <C-r> :CtrlPMRUF<CR>
 
-" Ctrl + m shows modified files
+" Ctrl + m - search for modified / unstaged files
 Bundle 'jasoncodes/ctrlp-modified.vim'
 nmap <C-m> :CtrlPModified<CR>
 
