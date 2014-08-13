@@ -46,6 +46,14 @@ nmap <C-r> :CtrlPMRUF<CR>
 Bundle 'jasoncodes/ctrlp-modified.vim'
 nmap <C-m> :CtrlPModified<CR>
 
+" Nerd
+Bundle 'scrooloose/nerdtree'
+" Auto open if no files
+autocmd StdinReadPre * let s:std_in=1
+autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+
+map <C-n> :NERDTreeToggle<CR>
+
 
 " Show trailing whitespace eg at the end of this line is a crap which should be red  
 Bundle 'bronson/vim-trailing-whitespace'
