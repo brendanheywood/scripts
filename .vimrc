@@ -37,6 +37,10 @@ highlight clear SignColumn
 " This is for block code commenting / uncommenting, select text then press Ctrl + // to toggle
 Bundle 'tomtom/tcomment_vim'
 
+" Ctrl + P support like Sublime / atom
+Bundle 'kien/ctrlp.vim'
+
+
 " End of bundle stuff
 filetype on
 
