@@ -28,6 +28,10 @@ set t_Co=256
 " This makes the git +/- columnonthe left black background
 highlight clear SignColumn
 
+" This is for block code commenting / uncommenting, select text then press Ctrl + // to toggle
+Bundle 'tomtom/tcomment_vim'
+
+" End of bundle stuff
 filetype on
 
 
