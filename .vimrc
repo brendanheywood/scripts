@@ -50,11 +50,14 @@ nmap <C-b> :CtrlPBuffer<CR>
 Bundle 'jasoncodes/ctrlp-modified.vim'
 nmap <C-m> :CtrlPModified<CR>
 
-" Nerd
+" NerdTree
 Bundle 'scrooloose/nerdtree'
 " Auto open if no files
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
+
+" Close vim when only nerdtree is left"
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
 map <C-n> :NERDTreeToggle<CR>
 
@@ -69,7 +72,7 @@ Bundle 'bronson/vim-trailing-whitespace'
 " set foldmethod=syntax  " slow
 " set foldmethod=indent  " slow
 " set foldlevelstart=1
-" set foldcolumn=1
+" set foldcolumn=3
 "
 " let          perl_fold=1      " Perl
 " let          ruby_fold=1      " Ruby
