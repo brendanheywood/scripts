@@ -3,39 +3,42 @@
 # Install .bashrc
 if grep 'scripts/.bashrc' ~/.bashrc
 then
-  echo '[ok] Bashrc'
+  echo '[ok] .bashrc'
 else
-  echo 'Setting up .bashrc'
+  # Append rather than replace
   echo '. ~/scripts/.bashrc' >> ~/.bashrc
+  echo 'Appended to .bashrc'
   . ~/.bashrc
 fi
 
 # Sym link .vim dir
 if [ -L ~/.vim ]; then
-  # It is a symlink!
-  # Symbolic link specific commands go here.
-  echo "[ok] .vim $LINK_OR_DIR"
-elif [ -d ~/.vim ]; then 
-  # It's a directory!
-  # Directory command goes here.
-  echo "[bad] .vim dir exists!"
+  echo "[ok] .vim"
+elif [ -e ~/.vim ]; then
+  echo "[bad] .vim exists!"
 else
   ln -s ~/scripts/.vim ~/.vim
-  echo "[ok] Created ~/.vim/ sym link"
+  echo "[ok] Created .vim/ sym link"
 fi
 
 # Sym link .vimrc
 if [ -L ~/.vimrc ]; then
-  # It is a symlink!
-  # Symbolic link specific commands go here.
-  echo "[ok] .vimrc $LINK_OR_DIR"
-elif [ -e ~/.vimrc ]; then 
-  # It's a directory!
-  # Directory command goes here.
+  echo "[ok] .vimrc"
+elif [ -e ~/.vimrc ]; then
   echo "[bad] .vimrc exists!"
 else
   ln -s ~/scripts/.vimrc ~/.vimrc
-  echo "[ok] Created ~/.vimrc sym link"
+  echo "[ok] Created .vimrc sym link"
+fi
+
+# Sym link .gitconfig
+if [ -L ~/.gitconfig ]; then
+  echo "[ok] .gitconfig"
+elif [ -e ~/.gitconfig ]; then
+  echo "[bad] .gitconfig exists!"
+else
+  ln -s ~/scripts/.gitconfig ~/.gitconfig
+  echo "[ok] Created ~/.gitconfig sym link"
 fi
 
 
