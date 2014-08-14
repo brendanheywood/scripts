@@ -37,10 +37,14 @@ highlight clear SignColumn
 " This is for block code commenting / uncommenting, select text then press Ctrl + // to toggle
 Bundle 'tomtom/tcomment_vim'
 
-" Ctrl + p support like Sublime / atom
+" Ctrl + p - support like Sublime / atom (not actually great on big projects like moodle)
 Bundle 'kien/ctrlp.vim'
+
 " Ctrl + r - search for most recently used files
 nmap <C-r> :CtrlPMRUF<CR>
+
+" Ctrl + b - search open buffers
+nmap <C-b> :CtrlPBuffer<CR>
 
 " Ctrl + m - search for modified / unstaged files
 Bundle 'jasoncodes/ctrlp-modified.vim'
@@ -57,6 +61,24 @@ map <C-n> :NERDTreeToggle<CR>
 
 " Show trailing whitespace eg at the end of this line is a crap which should be red  
 Bundle 'bronson/vim-trailing-whitespace'
+
+
+
+" All things folding and outlining, currently REALLY slow, need something better
+" Also need to find a way to fold JavaDoc style comments into the fold below it, otherwise is pretty useless
+" set foldmethod=syntax  " slow
+" set foldmethod=indent  " slow
+" set foldlevelstart=1
+" set foldcolumn=1
+"
+" let          perl_fold=1      " Perl
+" let          ruby_fold=1      " Ruby
+" let    javaScript_fold=1      " JavaScript
+" let        php_folding=1      " PHP
+" let     vimsyn_folding='af'   " Vim script
+" let   r_syntax_folding=1      " R
+" let xml_syntax_folding=1      " XML
+" let    sh_fold_enabled=1      " sh
 
 
 " End of bundle stuff

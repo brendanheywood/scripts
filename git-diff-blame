@@ -1,6 +1,10 @@
 #!/usr/bin/perl -w
 # From:
 # https://github.com/dmnd/git-diff-blame/blob/master/git-diff-blame
+#
+# Is functional but brittle
+# 
+#
 
 sub parse_hunk_header {
     my ($line) = @_;
