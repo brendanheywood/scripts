@@ -83,6 +83,11 @@ Bundle 'bronson/vim-trailing-whitespace'
 " let xml_syntax_folding=1      " XML
 " let    sh_fold_enabled=1      " sh
 
+" Less support for places which don't have it by defaults
+Bundle 'groenewege/vim-less'
+" Make all css files less files
+au BufNewFile,BufRead *.css set filetype=less
+
 
 " End of bundle stuff
 filetype on
