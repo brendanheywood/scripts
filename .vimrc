@@ -59,6 +59,12 @@ map <C-n> :NERDTreeToggle<CR>
 Bundle 'bronson/vim-trailing-whitespace'
 
 
+" Less support for places which don't have it by defaults
+Bundle 'groenewege/vim-less'
+" Make all css files less files
+au BufNewFile,BufRead *.css set filetype=less
+
+
 " End of bundle stuff
 filetype on
 
