@@ -12,7 +12,7 @@ open CONF, 'config.php';
 my %db = ();
 
 foreach $line (<CONF>){
-	if($line =~ /(^\$CFG->db(.*?)\s.*= '(.*)')/){
+	if($line =~ /(^\$CFG->db(.*?)\s.*= '(.*?)')/){
 		$key = $2;
 		$val = $3;
 		$db{$key} = $val;
@@ -24,7 +24,7 @@ close CONF;
 	
 print "Login:\n";
 if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
-    $command = "mysql -u $db{user} --password=$db{pass} $db{name}";
+    $command = "mysql -u $db{user} --password='$db{pass}' $db{name}";
 } elsif ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
     $command = "export PGPASSWORD=\"$db{pass}\";\n".
 #		"sudo -u postgres psql -h $db{host} $db{name} $db{user}";

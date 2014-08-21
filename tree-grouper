@@ -1,0 +1,129 @@
+#!/usr/bin/perl
+
+# Groups columns based on common values into a tree structure
+# Great for visualising how heirarcical some data is
+
+use strict;
+use utf8;
+use Data::Dumper;
+use Getopt::Long;
+
+binmode STDOUT, ":utf8";
+
+my $maxcols;
+my $help;
+my $width;
+my $info = <<EOF;
+Usage:
+  cat example.csv > tree-grouper
+
+Options:
+ -c --columns [number]
+     Only transform the first N columns into a tree
+
+ -w --width [number]
+     The width of each tree fork in chars (default 4)
+
+ -h --help
+     This help page
+
+EOF
+GetOptions ("columns|c=i" => \$maxcols,
+            "width|w=i"   => \$width,
+            "help|h"      => \$help
+        )
+  or die("Error in command line arguments\n$info");
+
+if ($help){
+    print $info;
+    exit;
+}
+$width ||= 3;
+
+my $gap       = ' '.' 'x($width-1);
+my $pipe      = '│'.' 'x($width-1);
+my $child     = '├'.'─'x($width-1);
+my $lastchild = '└'.'─'x($width-1);
+
+my $delim = ','; # option to change
+
+my @rows;
+my $numcols;
+my $output = '';
+my @set;
+my @last;
+
+my $maxCol = 0;
+
+foreach my $line (<STDIN>){
+
+    chop $line;
+    my @cols = split $delim, $line;
+
+    if (!$numcols){
+        $numcols = $#cols+1;
+    }
+
+    push @rows, [@cols];
+}
+
+if ($maxcols && $maxcols < $numcols){
+    $numcols = $maxcols;
+}
+
+
+# Remove dups
+foreach my $row (@rows){
+
+    my @cols = @{ $row };
+    for(my $c=0; $c<$numcols; $c++){
+
+        my $wid = length($cols[$c]) + length($pipe) * ($c+1);
+        if ($wid > $maxCol){
+            $maxCol = $wid;
+        }
+        if ($cols[$c] eq $last[$c]){
+            $row->[$c] = '';
+        } else {
+            last;
+        }
+    }
+    @last = @cols;
+}
+
+for(my $r = $#rows; $r >=0; $r--){
+
+    my $row = $rows[$r];
+    my @row = @{ $row }; 
+
+    my $c;
+    for($c=$numcols-1; $c>=0; $c--){
+        my $part = '';
+        my $s;
+
+        if ($row[$c] eq ''){
+            next;
+        }
+
+        $set[$c+1] = 0;
+
+        for($s=0; $s< $c; $s++){
+            $part .= $set[$s] ? $pipe : $gap; 
+        }
+        $part .= $set[$s] ? $child : $lastchild; 
+
+        my $width = $maxCol - length($pipe)*( $c+1 ) ;
+        $part .= sprintf '%-'.$width.'s',$row[$c];
+#        if ($c eq $numcols-1){
+#            $part .= '   | '.$row[$c+1];
+#        }
+        $part .= "\n";
+        $output = $part.$output;
+
+        $set[$c] = 1;
+    }
+
+}
+
+print $output;
+
