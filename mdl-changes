@@ -8,6 +8,7 @@
 
 
 use strict;
+use Data::Dumper;
 
 my $version;
 
@@ -28,7 +29,7 @@ if (-e 'version.php'){
         print "and then 'git fetch --tags moodle'\n\n";
         print "or for totara '??'\n";
         print "and then 'git fetch --tags totara'\n\n";
-        print "Using '$commit' instead of tag: $version\n";
+        print "Using '$commit' instead of tag: $version (WARNING this detection isn't perfect)\n";
         $version = $commit;
     } else {
 
@@ -80,14 +81,43 @@ sub details {
 
 #    print @commits;
 
-    my @wrs = grep /WR#\d+/, @commits;
-    for (@wrs){
-        s/^.*WR#?(\d+).*$/$1/g;
-        chomp;
-    }
-    @wrs = uniq @wrs; 
+    my @issues;
+    foreach my $com (@commits){
 
-    my $wrs = join ',', @wrs;
+        my @match = $com =~ m/(([A-Z]+-|WR#)\d+)/g;
+
+        # above matches twice, lets only extra the full match
+        for(my $c=0; $c <= $#match; $c +=2){
+            push @issues, $match[$c];
+        }
+    }
+
+
+    # Sort the issues by alpha by tracker and then numerical by issue num
+    @issues = sort {
+        $a =~ /(\D+)(\d+)/;
+        my $a1 = $1;
+        my $a2 = $2;
+        $b =~ /(\D+)(\d+)/;
+        my $b1 = $1;
+        my $b2 = $2;
+        return ($a1 cmp $b1) || ($a2 <=> $b2);
+    } @issues;
+    @issues = uniq @issues;
+
+    # if we have multiple trackers, let's remove the prefix to save space
+    # eg LT-101,LT-102 becomes LT-101,102
+
+    my $wrs;
+    my $last = '';
+    for(my $c=0; $c<$#issues; $c++){
+        my $tok = $issues[$c];
+        $tok =~ /^(\D*)(\d+)$/;
+        if ($c ne 0){ $wrs .= ','; }
+        if ($1 ne $last){ $wrs .= $1;  }
+        $wrs .= $2;
+        $last = $1;
+    }
 
     my @who = @commits;
     for (@who){
@@ -106,7 +136,7 @@ sub details {
 # show all plugins, which are pure A adds
 if (@plugins){
     print '-' x 100;
-    print "\nNew plugins added to this moodle:          File changes          WR's                 Who\n";
+    print "\nNew plugins added to this moodle:          File changes          Tracker              Who\n";
     foreach my $plugin (@plugins){
 
 #    if ($c++ > 3){ last; }
@@ -133,7 +163,12 @@ if (@plugins){
 
 }
 
-#exit;
+# exit;
+
+
+# Everything below here is just showing extra files which haven't been
+# detected as part of a moodle plugin ie they do not have a parent dir
+# which contains a version.php file - which is generally a coding failure
 
 my @added = grep /A\s/, @diff;
 my @diff = grep ! /A\s/, @diff;
@@ -164,7 +199,8 @@ if (@diff){
         my ($who, $wrs) = details($version, $file);
 
         printf "%-58s %-20s %s \n", $line, $wrs, $who;
-    }}
+    }
+}
 
 
 # find anything which is M and highlight it
