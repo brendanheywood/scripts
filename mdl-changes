@@ -81,6 +81,7 @@ sub details {
 
     # Remove commits which are from moodle tracker
     @commits = grep ! /MDL-/, @commits;
+    @commits = grep ! /MDLSITE-/, @commits;
 
     # Remove commits which are just an upstream merge
     @commits = grep ! /Merge.*MOODLE_/, @commits;
