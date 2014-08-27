@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+
+#
+# This is sorta like a moodle aware, git blame on roids
+# It generates a summary of how a moodle has diverged from core
+# and who did it, and under what WR's (if the git comments are mostly sane)
+#
+
+
+use strict;
+use Data::Dumper;
+use lib '/home/brendan/scripts/perllib/';
+use ColPrintf;
+
+
+
+
+col_printf "A %-40s %-6s %-6s %-6s  %-20s %22s\n", 'small', 'tiny', 'biggggger', '3', 'lots and lots and lots ete eth eth qeth eqth eht eth qeth h h et ryhry ry dgv v qer', 'small';
+col_printf "A %-40s %-6s %-6s %-6s  %-20s %22s\n", 'small', 'tiny', 'biggggger', '3', 'start lots and lots and lots ete eth eth qeth eqth eht eth qeth h h et ryhry ry dgv v qer end1', 'sytart1 eth weth wrj wrt wrj wryj ryj wryj wrj wj wj wrj wj wj end2';
+col_printf "A %-40s %-6s %-6s %-6s  %-20s %22s\n", 'small', 'tiny', 'biggggger', '3', 'gv v qer', 'eth weth wrj wrt wrj wryj ryj wryj wrj wj wj wrj wj wj';
+col_printf "A %-40s %-6s %-6s %-6s  %-20s %22s\n", 'small', 'tiny', 'biggggger', '3', 'lots and lots and lots ete eth eth qeth eqth eht eth qeth h h et ryhry ry dgv v qer', 'small';
+col_printf "A %-40s %-6s %-6s %-6s  %-20s %22s\n", 'small', 'tiny', 'biggggger', '3', 'lots and lots and lots ete eth eth qeth eqth eht eth qeth h h et ryhry ry dgv v qer', 'small';
+
+

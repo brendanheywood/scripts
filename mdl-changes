@@ -9,6 +9,8 @@
 
 use strict;
 use Data::Dumper;
+use lib '/home/brendan/scripts/perllib/';
+use ColPrintf;
 
 my $version;
 
@@ -71,7 +73,11 @@ sub details {
     my ($version, $files) = @_;
 
     #my @commits = `git log --oneline   $version..HEAD  $plugin`;
-    my @commits = `git log --pretty=format:"%an:SEP:%s"  $version..HEAD  $files`;
+    #my @commits = `git log --pretty=format:"%an:SEP:%s"  $version..HEAD  $files`;
+
+    # This just grabs ALL commits and filters from there, must more robust if the auto detected
+    # last upstream version is wrong (which it often is)
+    my @commits = `git log --pretty=format:"%an:SEP:%s"   $files`;
 
     # Remove commits which are from moodle tracker
     @commits = grep ! /MDL-/, @commits;
@@ -82,6 +88,8 @@ sub details {
 #    print @commits;
 
     my @issues;
+    my @who; # = @commits;
+
     foreach my $com (@commits){
 
         my @match = $com =~ m/(([A-Z]+-|WR#)\d+)/g;
@@ -89,8 +97,12 @@ sub details {
         # above matches twice, lets only extra the full match
         for(my $c=0; $c <= $#match; $c +=2){
             push @issues, $match[$c];
+            push @who, $com;
         }
+#print "ADD $com\n";
     }
+#    print "WHO0: --\n";
+#    print join '--',@who;
 
 
     # Sort the issues by alpha by tracker and then numerical by issue num
@@ -113,20 +125,29 @@ sub details {
     for(my $c=0; $c<$#issues; $c++){
         my $tok = $issues[$c];
         $tok =~ /^(\D*)(\d+)$/;
-        if ($c ne 0){ $wrs .= ','; }
+        if ($c ne 0){ $wrs .= ' '; }
         if ($1 ne $last){ $wrs .= $1;  }
         $wrs .= $2;
         $last = $1;
     }
 
-    my @who = @commits;
+#    print "WHO1: --\n";
+#    print join '--',@who;
+
     for (@who){
         s/^(.*):SEP.*$/$1/g;
         chomp;
     }
-    @who = uniq @who;
+#    print "WHO2: --\n";
+#    print join '--',@who;
 
-    my $who = join ',', @who;
+    @who = sort @who;
+    @who = uniq @who;
+#    print "WHO3: --\n";
+#    print join '--',@who;
+
+    my $who = join ', ', @who;
+#    print "WHO $who <<<<<<<\n";
 
     return $who, $wrs;
 
@@ -135,8 +156,8 @@ sub details {
 
 # show all plugins, which are pure A adds
 if (@plugins){
-    print '-' x 100;
-    print "\nNew plugins added to this moodle:          File changes          Tracker              Who\n";
+    print '-' x 120;
+    print "\nNew plugins added to this moodle:          File changes         Tracker                   Who\n";
     foreach my $plugin (@plugins){
 
 #    if ($c++ > 3){ last; }
@@ -158,7 +179,8 @@ if (@plugins){
 
         my ($who, $wrs) = details($version, $plugin);
 
-        printf "A %-40s %-6s %-6s %-6s  %-20s %s\n", $plugin, $add, $mod, $del, $wrs, $who;
+
+        col_printf "%-2s%-40s %-6s %-6s %-6s %-25s %-35s\n", 'A', $plugin, $add, $mod, $del, $wrs, $who;
     }
 
 }
@@ -179,11 +201,11 @@ if (@added){
     print "\nThese are other new files added to moodle: (probably missing a proper version.php file)\n";
     foreach my $line ( @added ){
 
-        $line =~ /.\s+(\S.*)$/;
         chomp $line;
+        $line =~ /.\s+(\S.*)$/;
         my $file = $1;
         my ($who, $wrs) = details($version, $file);
-        printf "%-58s %-20s %s \n", $line, $wrs, $who;
+        col_printf "%-58s %-20s %-30s \n", $file, $wrs, $who;
     }
 
 
@@ -193,12 +215,13 @@ if (@diff){
     print "\nWARNING: These are changes to core moodle\n";
     foreach my $line ( @diff ){
 
-        $line =~ /.\s+(\S.*)$/;
         chomp $line;
+#print "==$line==\n";
+        $line =~ /.\s+(\S.*)$/;
         my $file = $1;
         my ($who, $wrs) = details($version, $file);
 
-        printf "%-58s %-20s %s \n", $line, $wrs, $who;
+        col_printf "%-58s %-20s %-30s \n", $file, $wrs, $who;
     }
 }
 
