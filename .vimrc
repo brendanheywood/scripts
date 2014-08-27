@@ -88,6 +88,10 @@ Bundle 'groenewege/vim-less'
 " Make all css files less files
 au BufNewFile,BufRead *.css set filetype=less
 
+" Make mysql config files use .ini syntax
+au BufReadPost *.conf,*.cnf set filetype=dosini
+
+
 
 " End of bundle stuff
 filetype on
