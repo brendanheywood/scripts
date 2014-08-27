@@ -11,6 +11,7 @@ use strict;
 use Data::Dumper;
 use lib '/home/brendan/scripts/perllib/';
 use ColPrintf;
+use Term::ANSIColor;
 
 my $version;
 
@@ -212,8 +213,10 @@ if (@added){
 
 }
 if (@diff){
+    my $REVERSE = color('reverse');
+    my $RESET = color('reset');
     print '-' x 80;
-    print "\nWARNING: These are changes to core moodle\n";
+    print "\n$REVERSE WARNING $RESET These are changes to core moodle\n";
     foreach my $line ( @diff ){
 
         chomp $line;
