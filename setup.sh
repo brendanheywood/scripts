@@ -42,3 +42,14 @@ else
 fi
 
 
+# Sym link .psqlrc
+if [ -L ~/.psqlrc ]; then
+  echo "[ok] .psqlrc"
+elif [ -e ~/.psqlrc ]; then
+  echo "[bad] .psqlrc exists!"
+else
+  ln -s ~/scripts/.psqlrc ~/.psqlrc
+  echo "[ok] Created ~/.psqlrc sym link"
+fi
+
+
