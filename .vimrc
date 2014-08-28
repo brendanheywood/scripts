@@ -107,6 +107,10 @@ syntax on
 set viminfo='10,\"1000,:20,%,n~/.viminfo
 
 
+" Don't convert tabs to space when in a Makefile
+:autocmd FileType make set noexpandtab
+
+
 
 set number
 
