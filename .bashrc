@@ -11,3 +11,18 @@ eval "$(/home/brendan/moosh/bin/moosh init -)"
 
 export DEBFULLNAME='Brendan Heywood'
 export DEBEMAIL='brendan@catalyst.net.nz'
+
+
+export LESS="-iMSx4 -FX --shift .1"
+# -i  ignore case
+# -M  verbose prompt
+# -S  chop long lines
+# -x4 tabs stop at 4
+# -F  quit if one screen
+# -X  disable screen clear
+# --shift .1 left and right move 10% of screen
+#
+
+
+
+
