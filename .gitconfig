@@ -12,7 +12,8 @@
     timeline = log --graph --decorate --oneline
 #    pull-all = ~/scripts/git-pull-all
     pull-all = !git pull --rebase --prune $@ && git submodule update --init --recursive
-    ec = config --global -e
+    config-global = config --global -e
+    config-local = config -e
 
 [http]
     # see http://stackoverflow.com/questions/2702731/git-fails-when-pushing-commit-to-github
