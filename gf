@@ -24,9 +24,16 @@ if ($#ARGV ne -1){
 }
 
 my $BLINK = color('reverse');
-my $RESET = color('reset');
+my $RESET = color('reset'); # known bug: it resets the color when we only want to reset the inversion
 
-my $cmd = "git -c color.ui=always log -p -S'$grep' --full-diff -- . | sed -e 's/$grep/$BLINK\&$RESET/' | less -R";
+my $cmd = "git log --color -p -S'$grep' --full-diff -- . | sed -e 's/$grep/$BLINK\&$RESET/' | less";
+# --color  - force color output, normally turned off when we pipe
+#  -p      - generate pathc
+#  -S      - look for where this string was added or removed
+# --full-diff
+# --       - show only commits that matter
+#
+
 #print "$cmd\n";
 system($cmd);
 
