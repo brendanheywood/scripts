@@ -1,13 +1,16 @@
 [user]
 	name = Brendan Heywood
 	email = brendan@catalyst-au.net
+
 [color]
 	diff = auto
 	ui = true
+
 [core]
 	editor = vim
 	autocrlf = input
 	compression = 0
+
 [alias]
     timeline = log --graph --decorate --oneline
 #    pull-all = ~/scripts/git-pull-all
@@ -19,8 +22,14 @@
     # see http://stackoverflow.com/questions/2702731/git-fails-when-pushing-commit-to-github
 	postBuffer = 524288000
 
+[pager]
+    diff = diff-highlight | less
+    log  = diff-highlight | less
+    show = diff-highlight | less
+
 [push]
 	default = current
+
 [pull]
 	default = current
 
