@@ -5,6 +5,8 @@
 # It generates a summary of how a moodle has diverged from core
 # and who did it, and under what WR's (if the git comments are mostly sane)
 #
+# TODO
+# remove changes which are only file permissions
 
 
 use strict;

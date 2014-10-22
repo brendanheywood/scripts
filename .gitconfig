@@ -12,11 +12,19 @@
 	compression = 0
 
 [alias]
+    # view all commits on a ascii time line showing merges
     timeline = log --graph --decorate --oneline
+
+    # Recursively pull all submodules
 #    pull-all = ~/scripts/git-pull-all
     pull-all = !git pull --rebase --prune $@ && git submodule update --init --recursive
+
+    # but sometimes submodules are only a hash, not a branch, this shows which ones are broken
+    submodule-branches = "submodule foreach --quiet 'echo \"$(git rev-parse --abbrev-ref HEAD)    => $name\"'"
+
     config-global = config --global -e
     config-local = config -e
+
 
 [http]
     # see http://stackoverflow.com/questions/2702731/git-fails-when-pushing-commit-to-github

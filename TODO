@@ -7,4 +7,6 @@ add php mess detecter
 
 make setup handle .my.cnf
 
+makde git diff show whole line in green / red, but highlight char changes in reverse as well
+
 
