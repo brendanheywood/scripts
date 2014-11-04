@@ -22,6 +22,12 @@
     # but sometimes submodules are only a hash, not a branch, this shows which ones are broken
     submodule-branches = "submodule foreach --quiet 'echo \"$(git rev-parse --abbrev-ref HEAD)    => $name\"'"
 
+    # cheat sheet, not really a need for alias:
+    #
+    # maybe auto detect? status which shows tracing?
+    track-master = branch --set-upstream master  origin/master
+
+
     config-global = config --global -e
     config-local = config -e
 
