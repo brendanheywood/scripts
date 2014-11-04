@@ -8,13 +8,14 @@ This is useful in debugging the White Screen of Death, or cases where the there
  is no error log, or if the error log doesn't tell you where the error came from.
 
 It tells php to really *really*, no just f$#%^ing really, log your error, srzly.
-It also gives you a full stack trace and the URL which caused it (good for 
-isolating when it is actually a image or js request which is causing the error,
+
+It also gives you a full stack trace and the URL which caused it (good for
+isolating when it is actually an image or js request which is causing the error,
 not the main page)
 
 Just add this early in your page, it's already in local moodle config just uncomment it:
 
-include('/var/www/common/dev-conf/debug.php');
+include_once('/var/www/common/dev-conf/debug.php');
 
 NOTE: If Moodle/drupal/whatever also creates it own handlers, add this script AFTER them
 as this will chain to the existing handler.
