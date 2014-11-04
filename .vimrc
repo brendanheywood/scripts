@@ -62,6 +62,10 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTree
 map <C-n> :NERDTreeToggle<CR>
 
 
+" press tab to indent and shift tab to unindent a block of text
+vmap <Tab> >gv
+vmap <S-Tab> <gv
+
 " Show trailing whitespace eg at the end of this line is a crap which should be red  
 Bundle 'bronson/vim-trailing-whitespace'
 
