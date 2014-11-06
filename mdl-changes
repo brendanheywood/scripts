@@ -80,16 +80,28 @@ sub details {
 
     # This just grabs ALL commits and filters from there, must more robust if the auto detected
     # last upstream version is wrong (which it often is)
-    my @commits = `git log --pretty=format:"%an:SEP:%s"   $files`;
+
+    my @commits;
+
+    if (-d $files){
+        @commits = `cd $files; git log --pretty=format:"%an:SEP:%s"`;
+    } else {
+        @commits = `git log --pretty=format:"%an:SEP:%s"   $files`;
+    }
 
     # Remove commits which are from moodle tracker
     @commits = grep ! /MDL-/, @commits;
+    @commits = grep ! /MLD-/, @commits;
+    @commits = grep ! /DML-/, @commits;
+    @commits = grep ! /BETA-/, @commits;
+    @commits = grep ! /MNET-/, @commits;
+    @commits = grep ! /CONTRIB-/, @commits;
     @commits = grep ! /MDLSITE-/, @commits;
 
     # Remove commits which are just an upstream merge
     @commits = grep ! /Merge.*MOODLE_/, @commits;
 
-#    print @commits;
+#    print join '', @commits;
 
     my @issues;
     my @who; # = @commits;
@@ -103,7 +115,7 @@ sub details {
             push @issues, $match[$c];
             push @who, $com;
         }
-#print "ADD $com\n";
+# print "ADD $com";
     }
 #    print "WHO0: --\n";
 #    print join '--',@who;
@@ -126,9 +138,9 @@ sub details {
 
     my $wrs;
     my $last = '';
-    for(my $c=0; $c<$#issues; $c++){
+    for(my $c=0; $c<=$#issues; $c++){
         my $tok = $issues[$c];
-        $tok =~ /^(\D*)(\d+)$/;
+        $tok =~ /^(\D*)\-?(\d+)$/;
         if ($c ne 0){ $wrs .= ' '; }
         if ($1 ne $last){ $wrs .= $1;  }
         $wrs .= $2;
