@@ -31,6 +31,9 @@
     config-global = config --global -e
     config-local = config -e
 
+    # unadd - make more sense to me
+    unadd = reset
+
 
 [http]
     # see http://stackoverflow.com/questions/2702731/git-fails-when-pushing-commit-to-github
