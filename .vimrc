@@ -69,6 +69,17 @@ vmap <S-Tab> <gv
 " Show trailing whitespace eg at the end of this line is a crap which should be red  
 Bundle 'bronson/vim-trailing-whitespace'
 
+" This makes text wrap at spaces instead of mid-word, nicer for long wrapped text or markdown
+set linebreak
+
+" When really long lines wrapp so much they go off the screen they aren't shown with a @ instead" This fixes that and shows them:
+set display+=lastline
+
+" When lines are broken, as well as not showing a new line number also show an ellipsis to make it really clear that this is a wrapped line and not a new line
+set showbreak=...\ 
+
+" This does nicer wrapping when line is indented, but looks to not be compiled in :(
+" set breakindent
 
 
 " All things folding and outlining, currently REALLY slow, need something better
