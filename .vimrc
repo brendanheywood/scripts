@@ -104,9 +104,12 @@ Bundle 'groenewege/vim-less'
 au BufNewFile,BufRead *.css set filetype=less
 
 " Make mysql config files use .ini syntax
-au BufReadPost *.conf,*.cnf set filetype=dosini
+au BufReadPost *.conf,*.cnf,*.tksrc set filetype=dosini
 
 
+" This is for IDE like popup auto complete
+" crap need newer ubuntu first :(
+" Bundle 'Valloric/YouCompleteMe'
 
 " End of bundle stuff
 filetype on
@@ -141,7 +144,6 @@ set softtabstop=4
 set expandtab
 
 
-set clipboard=unnamed
 
 function! ResCur()
   if line("'\"") <= line("$")

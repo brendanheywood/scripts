@@ -16,11 +16,15 @@
     timeline = log --graph --decorate --oneline
 
     # Recursively pull all submodules
-#    pull-all = ~/scripts/git-pull-all
     pull-all = !git pull --rebase --prune $@ && git submodule update --init --recursive
     pull-all-fast = "submodule foreach git pull origin master \\&"
 
-    # but sometimes submodules are only a hash, not a branch, this shows which ones are broken
+    # Recursively push all submodules
+    push-all = submodule foreach git push
+    # for git 1.7.11 and later
+    #push-all = push --recurse-submodules=on-demand
+
+    # Sometimes submodules are only a hash, and not a branch, this shows which ones are broken
     submodule-branches = "submodule foreach --quiet 'echo \"$(git rev-parse --abbrev-ref HEAD)    => $name\"'"
 
     # cheat sheet, not really a need for alias:
