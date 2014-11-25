@@ -135,3 +135,16 @@ function UberExceptionHandler($ex) {
 
 
 $old_exception_handler = set_exception_handler("UberExceptionHandler");
+
+
+function sql($sql){
+
+    global $CFG;
+
+    $sql = preg_replace("/\{(.*?)\}/", $CFG->prefix . "$1", $sql);
+
+    print $sql."\n";
+
+}
+
+
