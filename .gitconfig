@@ -32,6 +32,8 @@
     # maybe auto detect? status which shows tracing?
     track-master = branch --set-upstream master  origin/master
 
+    # Quickly squash the last two commits
+    squash-recent = rebase -i HEAD~2
 
     config-global = config --global -e
     config-local = config -e
