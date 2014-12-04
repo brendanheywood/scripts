@@ -41,6 +41,7 @@
     # unadd - make more sense to me
     unadd = reset
 
+    remote-all = git-remote-all
 
 [http]
     # see http://stackoverflow.com/questions/2702731/git-fails-when-pushing-commit-to-github
