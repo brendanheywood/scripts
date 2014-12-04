@@ -26,4 +26,7 @@ export LESS="-riMSx4 -FX --shift .1"
 
 
 
+# This is pure gold!
+# Add your 'projects' or whatever folder to CDPATH enables you to 'cd <tab-autocomplete>' to it from anywhere
+export CDPATH=".:/var/www/"
 
