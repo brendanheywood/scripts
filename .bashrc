@@ -1,4 +1,9 @@
 
+alias gt=git
+alias gut=git
+alias got=git
+
+
 alias l='ls -CFa'
 
 alias o='xdg-open'
