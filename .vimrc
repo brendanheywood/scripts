@@ -59,7 +59,7 @@ autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 " Close vim when only nerdtree is left"
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
-map <C-n> :NERDTreeToggle<CR>
+"map <C-n> :NERDTreeToggle<CR>
 
 
 " press tab to indent and shift tab to unindent a block of text
@@ -105,6 +105,22 @@ au BufNewFile,BufRead *.css set filetype=less
 
 " Make mysql config files use .ini syntax
 au BufReadPost *.conf,*.cnf,*.tksrc set filetype=dosini
+
+
+" This is for sublime multi cursor fun
+Bundle 'terryma/vim-multiple-cursors'
+
+"let g:multi_cursor_use_default_mapping=0
+" Default mapping
+let g:multi_cursor_next_key='<C-n>'
+let g:multi_cursor_prev_key='<C-p>'
+let g:multi_cursor_skip_key='<C-x>'
+let g:multi_cursor_quit_key='<Esc>'
+
+" cheat sheet:
+" Press C+n to add more lines
+
+
 
 
 " This is for IDE like popup auto complete

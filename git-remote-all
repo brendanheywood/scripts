@@ -22,7 +22,7 @@ foreach(@subs){
             next;
         }
         $show = ($sub eq $lastsub ? '' : $sub);
-        printf ("%-50s %s\n", $show, $1);
+        printf ("%-55s %s\n", $show, $1);
         $lastsub = $sub;
     }
 }
