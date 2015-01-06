@@ -17,6 +17,11 @@ Bundle 'airblade/vim-gitgutter'
 let g:gitgutter_realtime = 0
 let g:gitgutter_eager = 0
 
+" keyboard commands:
+" ]c => next hunk
+" [c => prev hunk
+
+
 " Adds the cool branch / commit aware coloured status line on the bottom
 Bundle 'bling/vim-airline'
 set laststatus=2
