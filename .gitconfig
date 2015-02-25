@@ -12,8 +12,19 @@
 	compression = 0
 
 [alias]
+
+    # Super quick shorthands
+    a = add
+    c = commit
+    d = diff
+    l = log
+    s = status
+
     # view all commits on a ascii time line showing merges
     timeline = log --graph --decorate --oneline
+
+    ## Failed attempt at global custom commit template:
+    ## status = status && git log -n 7 --oneline
 
     # Recursively pull all submodules
     pull-all = !git pull --rebase --prune $@ && git submodule update --init --recursive
@@ -33,7 +44,7 @@
     track-master = branch --set-upstream master  origin/master
 
     # Quickly squash the last two commits
-    squash-recent = rebase -i HEAD~2
+    squash-recent = rebase -i HEAD~5
 
     config-global = config --global -e
     config-local = config -e
@@ -42,6 +53,9 @@
     unadd = reset
 
     remote-all = git-remote-all
+
+[status]
+#    submodulesummary = 1
 
 [http]
     # see http://stackoverflow.com/questions/2702731/git-fails-when-pushing-commit-to-github
