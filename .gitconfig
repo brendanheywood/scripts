@@ -18,7 +18,9 @@
     c = commit
     d = diff
     l = log
-    s = status
+    s = !git status && git log --oneline -n 2
+    # s = status
+    r = remote -v
 
     # view all commits on a ascii time line showing merges
     timeline = log --graph --decorate --oneline
