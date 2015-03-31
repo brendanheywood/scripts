@@ -1,13 +1,16 @@
 #!/usr/bin/perl
 
 use strict;
-use Term::ReadKey;
-use Term::ANSIColor;
 use Data::Dumper;
+use POSIX;
+use Term::ANSIColor;
+use Time::HiRes qw (sleep);
+use Term::ReadKey;
 
 my @lines = <STDIN>;
 
 my $state;
+$state->{'grep'} = $ARGV[0];
 $state->{'x'} = 0;
 $state->{'y'} = 0;
 $state->{'lines'} = @lines;
@@ -24,21 +27,39 @@ sub draw {
 
     # Reset the window, don't do it the first time
     if ($st->{draw}++ > 0){
-        print "\e[H";
-        print "\e[J";
+        print "\e[H"; # reset
+        # print "\e[J"; # clear
     }
 
     # Draw a sticky file header
 
     # Draw the lines we want
-    print join('', @lines[0..5]);
+    my $height = $st->{maxy} - 1;
+    $st->{h} = $height;
+    my $y1 = $st->{y};
+    my $y2 = $y1 + $height - 0;
+    my $width = $st->{maxx} - 1;
+    $st->{w} = $width;
+    my $x1 = $st->{x};
+    my $x2 = $x1 + $width - 5;
+
+    for (my $y = $y1; $y < $y2; $y++){
+        my $line = $lines[$y];
+        chomp $line;
+        printf ' %-' .$width."s\n", substr($line, $x1, $width);
+    }
 
     # If the number of rows is more than the screen height then
     # Draw a position and status bar
 
-print Dumper($st);
+# print Dumper($st);
 
-    # print $st{'x'} . 'x' . $st{'y'} . "\n";
+# search terms
+# print $state->{grep};
+    print "\e[7m"; # invert
+    print " lines ".($y1+1)."-$y2 ";
+    print "\e[27m"; # reset invert
+    print "\e[?25l"; # no blinking cursor
     # print "crap\n";
 }
 
@@ -66,26 +87,30 @@ while (1) {
                 $state->{'y'}--;
             } elsif($buffer == '279166') { # down
                 $state->{'y'}++;
-            } elsif($buffer == '279167') { # right
-                $state->{'x'}--;
             } elsif($buffer == '279168') { # left
-                $state->{'x'}++;
+                $state->{'x'}-= 4;
+            } elsif($buffer == '279167') { # right
+                $state->{'x'}+= 4;
             } elsif($buffer == '279153126') { # page up
-                $state->{'y'}-= 10;
+                $state->{'y'}-= $state->{h};
             } elsif($buffer == '279154126') { # page down
-                $state->{'y'}+= 10;
+                $state->{'y'}+= $state->{h};
             }
+            if ($state->{x} < 0 ){ $state->{x} = 0; }
+            if ($state->{y} < 0 ){ $state->{y} = 0; }
             draw($state);
-            print "buffer: '$buffer'\n";
+            print "buffer: '$buffer'";
         }
 
         $buffer = '';
+        sleep (0.005);
         next;
     }
 
     $buffer .= ord($char);
 }
 
+print "\n";
 
 ReadMode('normal', $TTY);
 close $TTY;
@@ -94,11 +119,11 @@ close $TTY;
 # Spec for file choose
 # show each chunk of diff
 # up / down keys to scroll up and down through each chunk
-# left and right also scroll
 # page up / down to scrol up and down half a screen height
 # show a cursor highlighting a whole chunk line match
 # enter opens vi at that line
 # show number of chunks (not just lines)
 # reformat chunks to show filename once per chunk on new line to save room
-# reduce cpu load, small delay in readkey?
+# turn flashing cursor off
+# add won color scheme back on
 
