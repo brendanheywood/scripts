@@ -1,0 +1,73 @@
+#!/usr/bin/perl
+
+use strict;
+use Term::ReadKey;
+use Term::ANSIColor;
+
+my @lines = <STDIN>;
+
+my %state;
+$state{'x'} = 0;
+$state{'y'} = 0;
+$state{'lines'} = @lines;
+
+sub draw {
+    my $st = @_;
+    my @size = Term::ReadKey::GetTerminalSize STDOUT;
+
+    # Reset the window
+
+    # Draw the lines we want
+    print join('', @lines[0..5]);
+
+    # print $st{'x'} . 'x' . $st{'y'} . "\n";
+    # print "crap\n";
+}
+
+draw(%state);
+
+open my $TTY, '<', '/dev/tty';
+ReadMode('cbreak', $TTY);
+
+$SIG{INT} = sub {
+    ReadMode('normal', $TTY);
+    exit;
+};
+
+my $buffer = '';
+
+while (1) {
+    my $char = ReadKey(-1, $TTY);
+    if (!defined $char){
+
+        if ($buffer){
+            # Escape
+            if ($buffer == '27'
+             || $buffer == '113'){
+                last;
+            }
+            print "buffer: '$buffer'\n";
+            draw(%state);
+        }
+
+        $buffer = '';
+        next;
+    }
+
+    $buffer .= ord($char);
+}
+
+
+ReadMode('normal', $TTY);
+close $TTY;
+
+# Spec for file choose
+# show each chunk of diff
+# up / down keys to scroll up and down through each chunk
+# left and right also scroll
+# page up / down to scrol up and down
+# show a cursor highlighting a whole chunk
+# enter opens vi at that line
+# show number of chunks (not just lines)
+# reformat chunks to show filename once per chunk on new line to save room
+
