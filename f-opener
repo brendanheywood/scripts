@@ -3,28 +3,46 @@
 use strict;
 use Term::ReadKey;
 use Term::ANSIColor;
+use Data::Dumper;
 
 my @lines = <STDIN>;
 
-my %state;
-$state{'x'} = 0;
-$state{'y'} = 0;
-$state{'lines'} = @lines;
+my $state;
+$state->{'x'} = 0;
+$state->{'y'} = 0;
+$state->{'lines'} = @lines;
+$state->{'draw'} = 0;
 
+# print Dumper($state);
+# exit;
 sub draw {
-    my $st = @_;
+    my ($st) = @_;
     my @size = Term::ReadKey::GetTerminalSize STDOUT;
 
-    # Reset the window
+    $st->{maxx} = $size[0];
+    $st->{maxy} = $size[1];
+
+    # Reset the window, don't do it the first time
+    if ($st->{draw}++ > 0){
+        print "\e[H";
+        print "\e[J";
+    }
+
+    # Draw a sticky file header
 
     # Draw the lines we want
     print join('', @lines[0..5]);
+
+    # If the number of rows is more than the screen height then
+    # Draw a position and status bar
+
+print Dumper($st);
 
     # print $st{'x'} . 'x' . $st{'y'} . "\n";
     # print "crap\n";
 }
 
-draw(%state);
+draw($state);
 
 open my $TTY, '<', '/dev/tty';
 ReadMode('cbreak', $TTY);
@@ -41,13 +59,24 @@ while (1) {
     if (!defined $char){
 
         if ($buffer){
-            # Escape
-            if ($buffer == '27'
-             || $buffer == '113'){
+            if (    $buffer == '27'        # esc
+                 || $buffer == '113')    { # q
                 last;
+            } elsif($buffer == '279165') { # up
+                $state->{'y'}--;
+            } elsif($buffer == '279166') { # down
+                $state->{'y'}++;
+            } elsif($buffer == '279167') { # right
+                $state->{'x'}--;
+            } elsif($buffer == '279168') { # left
+                $state->{'x'}++;
+            } elsif($buffer == '279153126') { # page up
+                $state->{'y'}-= 10;
+            } elsif($buffer == '279154126') { # page down
+                $state->{'y'}+= 10;
             }
+            draw($state);
             print "buffer: '$buffer'\n";
-            draw(%state);
         }
 
         $buffer = '';
@@ -61,13 +90,15 @@ while (1) {
 ReadMode('normal', $TTY);
 close $TTY;
 
+# TODO
 # Spec for file choose
 # show each chunk of diff
 # up / down keys to scroll up and down through each chunk
 # left and right also scroll
-# page up / down to scrol up and down
-# show a cursor highlighting a whole chunk
+# page up / down to scrol up and down half a screen height
+# show a cursor highlighting a whole chunk line match
 # enter opens vi at that line
 # show number of chunks (not just lines)
 # reformat chunks to show filename once per chunk on new line to save room
+# reduce cpu load, small delay in readkey?
 
