@@ -9,6 +9,8 @@ use Term::ReadKey;
 
 my @lines = <STDIN>;
 
+unshift @lines, '--';
+
 my $state;
 $state->{'grep'} = $ARGV[0];
 $state->{'x'} = 0;
@@ -46,7 +48,8 @@ sub draw {
     for (my $y = $y1; $y < $y2; $y++){
         my $line = $lines[$y];
         chomp $line;
-        printf ' %-' .$width."s\n", substr($line, $x1, $width);
+        my $sub = sprintf ' %-' .$width."s\n", substr($line, $x1, $width);
+        print $sub;
     }
 
     # If the number of rows is more than the screen height then
@@ -57,9 +60,10 @@ sub draw {
 # search terms
 # print $state->{grep};
     print "\e[7m"; # invert
-    print " lines ".($y1+1)."-$y2 ";
+    print " lines ".($y1+1)."-$y2 / ". ($#lines+1). ' ';
+    printf "%d% ", 100 * ($y2 / ($#lines+1)); # per %
     print "\e[27m"; # reset invert
-    print "\e[?25l"; # no blinking cursor
+    print "\e[?25l    "; # no blinking cursor
     # print "crap\n";
 }
 
@@ -70,6 +74,8 @@ ReadMode('cbreak', $TTY);
 
 $SIG{INT} = sub {
     ReadMode('normal', $TTY);
+    print "\n";
+    print "\e[?25h    "; # reset blinking cursor
     exit;
 };
 
@@ -80,6 +86,10 @@ while (1) {
     if (!defined $char){
 
         if ($buffer){
+
+            my $per;
+            my $lh = $#lines - $state->{h} + 1;
+
             if (    $buffer == '27'        # esc
                  || $buffer == '113')    { # q
                 last;
@@ -93,13 +103,22 @@ while (1) {
                 $state->{'x'}+= 4;
             } elsif($buffer == '279153126') { # page up
                 $state->{'y'}-= $state->{h};
-            } elsif($buffer == '279154126') { # page down
+            } elsif($buffer == '279154126'    # page down
+                 || $buffer == '32') {        # space
                 $state->{'y'}+= $state->{h};
+            } elsif ($buffer >= '48' and $buffer <= '57'){        # 1 = 10%, 9 = 90%
+                $per = $buffer*1 - 48;
+                if ($per == 0){ $per = 10; }
+                $per--;
+                $state->{'y'} = floor($per * $lh / 9);
             }
             if ($state->{x} < 0 ){ $state->{x} = 0; }
             if ($state->{y} < 0 ){ $state->{y} = 0; }
+            if ($state->{y} > $lh){ $state->{y} = $lh; }
+
+
             draw($state);
-            print "buffer: '$buffer'";
+            print "buffer: '$buffer' $per";
         }
 
         $buffer = '';
@@ -113,6 +132,7 @@ while (1) {
 print "\n";
 
 ReadMode('normal', $TTY);
+print "\e[?25h"; # reset blinking cursor
 close $TTY;
 
 # TODO
@@ -124,6 +144,6 @@ close $TTY;
 # enter opens vi at that line
 # show number of chunks (not just lines)
 # reformat chunks to show filename once per chunk on new line to save room
-# turn flashing cursor off
 # add won color scheme back on
+# If less lines than terminal height don't enter interactive mode
 
