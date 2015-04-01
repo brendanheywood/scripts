@@ -45,11 +45,94 @@ sub draw {
     my $x1 = $st->{x};
     my $x2 = $x1 + $width - 5;
 
+    my $file = '';
+    my $lnum = -1;
+    my $text = '';
+    my $mode = '';
+    my $grep = $st->{grep};
     for (my $y = $y1; $y < $y2; $y++){
         my $line = $lines[$y];
         chomp $line;
-        my $sub = sprintf ' %-' .$width."s\n", substr($line, $x1, $width);
-        print $sub;
+
+        if ($line eq '--'){
+            my $line = $lines[$y+1];
+            $line =~ /^(.*?)\-(\d+)\-(.*)$/;
+
+            print
+                ""
+              . "\e[36m" # cyan fg
+              . $1
+              # . sprintf('%-'.($width).'s', $1)
+
+              . " "
+              . "\e[90m"  # dark grey
+              # . "\e[100m" # gray bg
+              . ( '-' x ($width - length($1) ))
+              . "\e[39m" # default fg
+              # . "\e[49m" # default bg
+              . "\n";
+            next;
+        }
+
+        $file = '';
+        $lnum = -1;
+        $text = 'crap';
+        $mode = '?';
+        if ($line =~ /^(.*?)\-(\d+)\-(.*)$/){
+            $file = $1;
+            $lnum = $2;
+            $text = $3;
+            $mode = '-';
+        } elsif ($line =~ /^(.*?)\:(\d+)\:(.*)$/){
+            $file = $1;
+            $lnum = $2;
+            $text = $3;
+            $mode = ':';
+        }
+
+        my $start = '';
+        if ($y == 12){
+            $start .= ''
+          . "\e[1m"  # bold fg
+          . "\e[44m" # blue bg
+          . '  '
+          . $lnum
+          . ' '
+          # . "\e[0m" # not bold
+          . "\e[49m" # default bg
+          ;
+        } else {
+            $start .=
+            "\e[32m" # green fg
+          . '  '
+          . $lnum
+          . "\e[36m" # cyan fg
+          . $mode
+          . "\e[39m" # default fg
+          ;
+        }
+        my $sx = length($lnum)+3;
+        my $wx = $width - $sx;
+        my $sub = sprintf("%-".$wx."s", substr($text, $x1, $wx) );
+
+
+        my $on;
+        my $of;
+        my $end;
+        if ($y == 12){
+            $on  .= "\e[41m"; # red bg
+            $of  .= "\e[49m"; # default bg
+            $end .= "\e[21m"; # not bold
+
+        } else {
+            $on  .= "\e[91m"; # red fg
+            $on  .= "\e[1m";  # bold
+            $of  .= "\e[21m"; # not bold
+            $of  .= "\e[39m"; # default fg
+        }
+        $sub =~ s/($grep)/$on$1$of/g;
+
+        print "$start$sub$end\n";
     }
 
     # If the number of rows is more than the screen height then
@@ -136,14 +219,12 @@ print "\e[?25h"; # reset blinking cursor
 close $TTY;
 
 # TODO
-# Spec for file choose
-# show each chunk of diff
 # up / down keys to scroll up and down through each chunk
 # page up / down to scrol up and down half a screen height
 # show a cursor highlighting a whole chunk line match
 # enter opens vi at that line
+# can we insert the search query into the vim search history so you can just press b to jump to it?
 # show number of chunks (not just lines)
-# reformat chunks to show filename once per chunk on new line to save room
-# add won color scheme back on
 # If less lines than terminal height don't enter interactive mode
+# If more lines than say 1000 then stop reading sdtin, flag that there is more, only keep reading if we scroll down that far
 
