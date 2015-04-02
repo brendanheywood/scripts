@@ -13,11 +13,12 @@
 
 [alias]
 
-    # Super quick shorthands
+    # Super quick and improved shorthands
     a = add
+    b = branch
     c = commit
     d = diff
-    l = log
+    l = log --name-status
     s = !git status && git log --oneline -n 2
     # s = status
     r = remote -v
@@ -51,8 +52,11 @@
     config-global = config --global -e
     config-local = config -e
 
-    # unadd - make more sense to me
+    # unadd - makes more sense to me
     unadd = reset
+
+    # uncommit the last commit back into staging area (need to then unadd it if you want)
+    uncommit = reset --soft HEAD~1
 
     remote-all = git-remote-all
 
