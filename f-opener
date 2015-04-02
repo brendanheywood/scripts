@@ -7,9 +7,19 @@ use Term::ANSIColor;
 use Time::HiRes qw (sleep);
 use Term::ReadKey;
 
+# Colors see http://misc.flogisoft.com/bash/tip_colors_and_formatting
+
 my @lines = <STDIN>;
 
 unshift @lines, '--';
+
+my @matches;
+for my $i (0 .. $#lines) {
+    my $line = $lines[$i];
+    if ($line =~ /^(.*?)\:(\d+)\:(.*)$/){
+        push @matches, [$i, $1, $2 ];
+    }
+}
 
 my $state;
 $state->{'grep'} = $ARGV[0];
@@ -17,12 +27,23 @@ $state->{'x'} = 0;
 $state->{'y'} = 0;
 $state->{'lines'} = @lines;
 $state->{'draw'} = 0;
+$state->{'cursor'} = 0; # which match do we focus on?
+$state->{'matches'} = \@matches;
 
 # print Dumper($state);
 # exit;
 sub draw {
     my ($st) = @_;
     my @size = Term::ReadKey::GetTerminalSize STDOUT;
+
+    my @matches = @{ $st->{matches} };
+
+    print $st->{cursor};
+    my @cursor = @{
+        $matches[$st->{cursor}]
+    };
+
+    my $focus = $cursor[0];
 
     $st->{maxx} = $size[0];
     $st->{maxy} = $size[1];
@@ -91,7 +112,7 @@ sub draw {
         }
 
         my $start = '';
-        if ($y == 12){
+        if ($y == $focus){
             $start .= ''
           . "\e[1m"  # bold fg
           . "\e[44m" # blue bg
@@ -99,7 +120,8 @@ sub draw {
           . $lnum
           . ' '
           # . "\e[0m" # not bold
-          . "\e[49m" # default bg
+          # . "\e[49m" # default bg
+          . "\e[100m" # gray bg
           ;
         } else {
             $start .=
@@ -111,7 +133,7 @@ sub draw {
           . "\e[39m" # default fg
           ;
         }
-        my $sx = length($lnum)+3;
+        my $sx = length($lnum)+2;
         my $wx = $width - $sx;
         my $sub = sprintf("%-".$wx."s", substr($text, $x1, $wx) );
 
@@ -119,10 +141,12 @@ sub draw {
         my $on;
         my $of;
         my $end;
-        if ($y == 12){
+        if ($y == $focus){
             $on  .= "\e[41m"; # red bg
-            $of  .= "\e[49m"; # default bg
+            # $of  .= "\e[49m"; # default bg
+            $of  .= "\e[100m"; # default bg
             $end .= "\e[21m"; # not bold
+            $end .= "\e[49m"; # default bg
 
         } else {
             $on  .= "\e[91m"; # red fg
@@ -145,6 +169,9 @@ sub draw {
     print "\e[7m"; # invert
     print " lines ".($y1+1)."-$y2 / ". ($#lines+1). ' ';
     printf "%d% ", 100 * ($y2 / ($#lines+1)); # per %
+
+    printf "Found %d out of %d", $st->{cursor}, $#matches, $st->{cursor};
+
     print "\e[27m"; # reset invert
     print "\e[?25l    "; # no blinking cursor
     # print "crap\n";
@@ -176,10 +203,15 @@ while (1) {
             if (    $buffer == '27'        # esc
                  || $buffer == '113')    { # q
                 last;
+            } elsif($buffer == '10') { # up
+                $state->{selected} = 1;
+                last;
             } elsif($buffer == '279165') { # up
-                $state->{'y'}--;
+                # $state->{'y'}--;
+                $state->{'cursor'}--;
             } elsif($buffer == '279166') { # down
-                $state->{'y'}++;
+                # $state->{'y'}++;
+                $state->{'cursor'}++;
             } elsif($buffer == '279168') { # left
                 $state->{'x'}-= 4;
             } elsif($buffer == '279167') { # right
@@ -195,6 +227,14 @@ while (1) {
                 $per--;
                 $state->{'y'} = floor($per * $lh / 9);
             }
+
+            if ($state->{cursor} < 0 ){ $state->{cursor} = 0; }
+            if ($state->{cursor} > $#matches ){ $state->{cursor} = $#matches; }
+
+            # If cursor gets near top or bottom then jump
+            # TODO
+
+            # Don't go out of bounds
             if ($state->{x} < 0 ){ $state->{x} = 0; }
             if ($state->{y} < 0 ){ $state->{y} = 0; }
             if ($state->{y} > $lh){ $state->{y} = $lh; }
@@ -216,15 +256,19 @@ print "\n";
 
 ReadMode('normal', $TTY);
 print "\e[?25h"; # reset blinking cursor
+print "\e[21m"; # not bold
+print "\e[39m"; # default fg
+print "\e[49m"; # default bg
 close $TTY;
 
+if ($state->{selected} == 1){
+    my @sel = @{ $matches[ $state->{cursor} ] };
+    my $cmd = "vim +$sel[2] $sel[1] < /dev/tty";
+    exec ($cmd);
+}
 # TODO
-# up / down keys to scroll up and down through each chunk
-# page up / down to scrol up and down half a screen height
-# show a cursor highlighting a whole chunk line match
-# enter opens vi at that line
 # can we insert the search query into the vim search history so you can just press b to jump to it?
-# show number of chunks (not just lines)
 # If less lines than terminal height don't enter interactive mode
 # If more lines than say 1000 then stop reading sdtin, flag that there is more, only keep reading if we scroll down that far
+# show clean error when no results
 
