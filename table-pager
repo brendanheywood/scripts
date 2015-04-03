@@ -37,6 +37,7 @@ $state->{'y'} = 0;
 $state->{'head'} = \@header;
 $state->{'lines'} = @lines;
 $state->{'draw'} = 0;
+$state->{'lockcol'} = 1;
 
 # print Dumper($state);
 # exit;
@@ -44,15 +45,15 @@ sub draw {
     my ($st) = @_;
     my @size = Term::ReadKey::GetTerminalSize STDOUT;
 
-    my $f = '┌─┬┐'.
-            '│ ││'.
-            '├─┼┤'.
-            '└─┴┘';
+    my $f = '┌─┬╥┐     '.
+            '│ │║│     '.
+            '├─┼╫┤     '.
+            '└─┴╨┘     ';
 
-    my $colc = "\e[34m"; # blue fg    - column color
-    my $colh = "\e[39m"; # default fg - header color
-    my $cold = "\e[32m"; # green fg   - data color
-    my $coln = "\e[90m"; # yellow fg  - row num color
+    my $colc = "\e[34m"; # blue fg    - color column
+    my $cold = "\e[39m"; # default fg - color header
+    my $colh = "\e[32m"; # green fg   - color data
+    my $coln = "\e[90m"; # yellow fg  - color row num
 
 
 
@@ -72,37 +73,64 @@ sub draw {
     # How many rows do we have?
     my $nw = length(($#lines+1) . '');
     #
-    my $l1 = substr($f,1,1) x $nw;
+    my $l1 = substr($f,1,1) x $nw
+           . substr($f,2,1);
     my $l2 = $coln
            . ' ' x ($nw-1) . '#'
-           . $colc;
-    my $l3 = substr($f,1,1) x $nw;
+           . $colc
+           . substr($f,12,1);
+    my $l3 = substr($f,1,1) x $nw
+           . substr($f,22,1);
 
 
     my $col = 0;
     my $w;
     $l1 .= $colc;
-    foreach my $head (@head){
+
+    my $head;
+
+
+    # Draw the locked header cols
+    for(; $col<$st->{lockcol}; $col++){
+
+        $head = $head[$col];
         chomp $head;
         $w = length($head);
 
-        $l1 .= substr($f,2,1);
-        $l1 .= substr($f,1,1) x $w;
+        $l1 .= substr($f, 1,1) x $w;
+        $l1 .= substr($f, 3,1);
 
-        $l2 .= substr($f,6,1);
         $l2 .= $colh;
         $l2 .= sprintf("%-".$w."s", $head);
         $l2 .= $colc;
+        $l2 .= substr($f,13,1);
 
-        $l3 .= substr($f,10,1);
-        $l3 .= substr($f,9,1) x $w;
-
-        $col++;
+        $l3 .= substr($f,21,1) x $w;
+        $l3 .= substr($f,23,1);
     }
 
-    $l1 .= substr($f,3,1);
-    $l2 .= substr($f,7,1);
-    $l3 .= substr($f,11,1);
+    # Draw the scrolling header cols
+    for(; $col<=$#head; $col++){
+        $head = $head[$col];
+        chomp $head;
+        $w = length($head);
+
+        $l1 .= substr($f,1,1) x $w;
+        $l1 .= substr($f,2,1);
+
+        $l2 .= $colh;
+        $l2 .= sprintf("%-".$w."s", $head);
+        $l2 .= $colc;
+        $l2 .= substr($f,12,1);
+
+        $l3 .= substr($f,21,1) x $w;
+        $l3 .= substr($f,22,1);
+
+    }
+
+    $l1 .= substr($f, 4,1);
+    $l2 .= substr($f,14,1);
+    $l3 .= substr($f,24,1);
 
     print "\e[34m"; # blue fg
     print "$l1\n$l2\n$l3\n";
@@ -125,20 +153,39 @@ sub draw {
         my $line = $lines[$y];
         chomp $line;
 
+        $col = 0;
+        my @parts = split('\|', $line);
+
+        # print row number
         print $coln;
         printf "%".$nw."s", $y+1;
         print $colc;
+        print substr($f,12,1);
+
+        # Draw the locked header cols
+        for(; $col<$st->{lockcol}; $col++){
+
+            $head = $head[$col];
+            chomp $head;
+            $w = length($head);
+
+            print $cold;
+            print sprintf("%-".$w."s", $parts[$col]);
+            print $colc;
+            print substr($f,13,1);
+
+        }
 
 
-        my @parts = split('\|', $line);
-        $line = join(substr($f,4,1), @parts);
 
-        print substr($f,4,1);
+        $line = join(substr($f,12,1), @parts);
+
+        print substr($f,12,1);
         print $cold;
         printf "%s", substr( $line, $x1, $width);
         print $colc;
 
-        print substr($f,4,1);
+        print substr($f,12,1);
         print "\n";
     }
 
@@ -151,7 +198,7 @@ sub draw {
     print "\e[7m"; # invert
     print " Rows ".($y1+1)."-$y2 / ". ($#lines+1). ' ';
     printf "%d% ", 100 * ($y2 / ($#lines+1)); # per %
-
+    print " $x1 ";
 
     print "\e[27m"; # reset invert
     print "\e[?25l    "; # no blinking cursor
@@ -193,9 +240,9 @@ while (1) {
                 $state->{'y'}++;
                 # $state->{'cursor'}++;
             } elsif($buffer == '279168') { # left
-                $state->{'x'}-= 4;
+                $state->{'x'}-= 1;
             } elsif($buffer == '279167') { # right
-                $state->{'x'}+= 4;
+                $state->{'x'}+= 1;
             } elsif($buffer == '279153126') { # page up
                 $state->{'y'}-= $state->{h};
             } elsif($buffer == '279154126'    # page down
