@@ -63,7 +63,7 @@ sub draw {
     my $height = $st->{maxy} - 1;
     $st->{h} = $height;
     my $y1 = $st->{y};
-    my $y2 = $y1 + $height - 13; # 4 lines of chrome to take off
+    my $y2 = $y1 + $height - 3; # 4 lines of chrome to take off
     my $width = $st->{maxx} - 1;
     $st->{w} = $width;
     my $x1 = $st->{x};
@@ -80,7 +80,9 @@ sub draw {
 
     # Draw a sticky file header
 
-    my $remainder = $width; # How many visible chars left on the screen?
+    my $remainder = $width+1; # How many visible chars left on the screen?
+
+# print "Rem $remainder orig\n";
 
     # How many rows do we have? So how wide is that number?
     my $nw = length(($#lines+1) . '');
@@ -98,6 +100,7 @@ sub draw {
 
     $remainder -= ($nw + 1); # width of number col
 
+# print "Rem $remainder num\n";
     my $col = 0;
     my $w;
 
@@ -124,14 +127,17 @@ sub draw {
 
         $remainder -= ($w + 1); # width of number col
     }
+# print "Rem $remainder lock\n";
+
+    $remainder++;
+
+        my $colsleft = $#head - $col + 1;
+        $remainder -= $colsleft;
+#  print "Rem $remainder removed $colsleft\n";
+
 
 
     my $processed = 0; # how many chars have we processed?
-    my $seen = 0; # how many chars of scrolling header have we seen so far?
-    my $colsleft = $#head - $col + 1;
-
-    $remainder -= $colsleft; # Remove 1 char for cols that could be squished
-
 
     # Draw the scrolling header cols
     for(; $col<=$#head; $col++){
@@ -140,72 +146,76 @@ sub draw {
         $w = length($head) + 1; # add 1 for the border
         $head =~ s/^\s+/ /g;
 
+
         my $offset = 0; # how much of this header will we show?
 
         # There are 5 scenarios:
         # 1) cropped from the left completetly
-        printf "%-3d %-2d %-2d %-2d %s", $processed, $seen, $x1, $w, $remainder, $head;
+        # printf "%-2d %-3d %-2d %-2d %s ", $col, $processed, $x1, $w, $remainder, $head;
         if ($x1 >= $processed + $w){
             $processed += $w;
-            print "seen\n";
+            $remainder++;
             $w = 0;
 
         # 2) cropped from the left partially
         } elsif ($x1 > $processed ) {
-            print "left\n";
             $offset = $x1 - $processed;
             $processed += $w;
             $w -= $offset;
-            # $seen += $w;
-            # $remainder -= $w;
+            $remainder -= $w - 1;
+            # print "left   $remainder\n";
 
             # what if the screen is too small for a single field?
             # crop on right too
 
-        # 3) showing the lot
-        # } elsif ($x1 < $seen) {
-} else {
+        # 3) squished
+        } elsif ($remainder <= 0) {
             $processed += $w;
-            print "middle\n";
-            # $seen += $w;
-            # $remainder -= $w;
-        # 4) cropped on the right
+            $w = 1;
+            $remainder = 0;
+            # print "drop   $remainder\n";
 
-        # 5) squished
-        # } else {
-            # $processed += $w;
-            # print "drop\n";
-            # last;
+        # 4) cropping the right side
+        } elsif ($w > $remainder) {
+            $processed += $w;
+            $w = $remainder;
+            $remainder -= $w - 1;
+            # print "right   $remainder\n";
+
+
+        # 4) showing the lot
+        } else {
+            $processed += $w;
+            $remainder -= $w - 1;
+            # print "middle $remainder\n";
+
         }
 
 
         if ($w > 0){
 
             $l1 .= substr($f,1,1) x ($w-1);
-            $l1 .= substr($f,2,1);
 
             $l2 .= $colh;
-            $l2 .= sprintf("%-".($w-1)."s", substr($head,$offset,$w) );
+            $l2 .= sprintf("%-".($w-1)."s", substr($head,$offset, $w-1) );
             $l2 .= $colc;
-            $l2 .= substr($f,12,1);
 
             $l3 .= substr($f,21,1) x ($w-1);
-            $l3 .= substr($f,22,1);
 
+            # right border
+            if ($col<$#head) {
+                $l1 .= substr($f,2,1);
+                $l2 .= substr($f,12,1);
+                $l3 .= substr($f,22,1);
+            } else {
+                $l1 .= substr($f, 4,1);
+                $l2 .= substr($f,14,1);
+                $l3 .= substr($f,24,1);
+            }
         }
 
     }
 
-    # draw the minified col heads
-
-
-    $l1 .= substr($f, 4,1);
-    $l2 .= substr($f,14,1);
-    $l3 .= substr($f,24,1);
-
-
-$l1 .= "=$remainder ";
-$l1 .= "left = $colsleft ";
     print "$l1\n$l2\n$l3\n";
 
 
@@ -246,7 +256,7 @@ $l1 .= "left = $colsleft ";
 
         print substr($f,12,1);
         print $cold;
-        printf "%s", substr( $line, $x1, $width);
+        # printf "%s", substr( $line, $x1, $width);
         print $colc;
 
         print substr($f,12,1);
