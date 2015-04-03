@@ -8,6 +8,9 @@ use Term::ANSIColor;
 use Time::HiRes qw (sleep);
 use Term::ReadKey;
 
+
+binmode STDOUT, ":utf8";
+
 # Colors see http://misc.flogisoft.com/bash/tip_colors_and_formatting
 
 my @lines = <STDIN>;
@@ -31,7 +34,7 @@ pop @lines; # 2 blank line at end
 my $state;
 $state->{'x'} = 0;
 $state->{'y'} = 0;
-$state->{'head'} = @header;
+$state->{'head'} = \@header;
 $state->{'lines'} = @lines;
 $state->{'draw'} = 0;
 
@@ -46,29 +49,69 @@ sub draw {
             '├─┼┤'.
             '└─┴┘';
 
+    my $colc = "\e[34m"; # blue fg    - column color
+    my $colh = "\e[39m"; # default fg - header color
+    my $cold = "\e[32m"; # green fg   - data color
+    my $coln = "\e[90m"; # yellow fg  - row num color
+
+
+
     $st->{maxx} = $size[0];
     $st->{maxy} = $size[1];
 
     # Reset the window, don't do it the first time
     if ($st->{draw}++ > 0){
         print "\e[H"; # reset
-        # print "\e[J"; # clear
+        print "\e[J"; # clear
     }
+
+    my @head = @{ $st->{head} };
 
     # Draw a sticky file header
 
-    my @head = $st->{head};
-    print substr($f,0,1);
+    # How many rows do we have?
+    my $nw = length(($#lines+1) . '');
+    #
+    my $l1 = substr($f,1,1) x $nw;
+    my $l2 = $coln
+           . ' ' x ($nw-1) . '#'
+           . $colc;
+    my $l3 = substr($f,1,1) x $nw;
 
-        # . substr($f,1,
-    print "header \n";
-    print "-----\n";
+
+    my $col = 0;
+    my $w;
+    $l1 .= $colc;
+    foreach my $head (@head){
+        chomp $head;
+        $w = length($head);
+
+        $l1 .= substr($f,2,1);
+        $l1 .= substr($f,1,1) x $w;
+
+        $l2 .= substr($f,6,1);
+        $l2 .= $colh;
+        $l2 .= sprintf("%-".$w."s", $head);
+        $l2 .= $colc;
+
+        $l3 .= substr($f,10,1);
+        $l3 .= substr($f,9,1) x $w;
+
+        $col++;
+    }
+
+    $l1 .= substr($f,3,1);
+    $l2 .= substr($f,7,1);
+    $l3 .= substr($f,11,1);
+
+    print "\e[34m"; # blue fg
+    print "$l1\n$l2\n$l3\n";
 
     # Draw the lines we want
     my $height = $st->{maxy} - 1;
     $st->{h} = $height;
     my $y1 = $st->{y};
-    my $y2 = $y1 + $height - 2;
+    my $y2 = $y1 + $height - 3;
     my $width = $st->{maxx} - 1;
     $st->{w} = $width;
     my $x1 = $st->{x};
@@ -82,7 +125,21 @@ sub draw {
         my $line = $lines[$y];
         chomp $line;
 
-        printf "%-20sX\n", substr( $line, $x1, $width);
+        print $coln;
+        printf "%".$nw."s", $y+1;
+        print $colc;
+
+
+        my @parts = split('\|', $line);
+        $line = join(substr($f,4,1), @parts);
+
+        print substr($f,4,1);
+        print $cold;
+        printf "%s", substr( $line, $x1, $width);
+        print $colc;
+
+        print substr($f,4,1);
+        print "\n";
     }
 
     # If the number of rows is more than the screen height then
@@ -90,8 +147,9 @@ sub draw {
 
 # print Dumper($st);
 
+    print "\e[39m"; # default fg
     print "\e[7m"; # invert
-    print " lines ".($y1+1)."-$y2 / ". ($#lines+1). ' ';
+    print " Rows ".($y1+1)."-$y2 / ". ($#lines+1). ' ';
     printf "%d% ", 100 * ($y2 / ($#lines+1)); # per %
 
 
@@ -120,7 +178,7 @@ while (1) {
         if ($buffer){
 
             my $per;
-            my $lh = $#lines - $state->{h} + 1;
+            my $lh = $#lines - $state->{h} + 4; # lines of chrome
 
             if (    $buffer == '27'        # esc
                  || $buffer == '113')    { # q
@@ -181,4 +239,8 @@ close $TTY;
 # If less lines than terminal height don't enter interactive mode
 # If more lines than say 1000 then stop reading sdtin, flag that there is more, only keep reading if we scroll down that far
 # show clean error when no results
+# sticky left column
+# make headers match cols when pan right
+# show pipes for extra hidden columns to the right
+
 
