@@ -1,0 +1,13 @@
+ id | component |                classname                 
+----+-----------+------------------------------------------
+  1 | moodle    | \core\task\session_cleanup_task
+  2 | moodle    | \core\task\delete_unconfirmed_users_task
+  3 | moodle    | \core\task\delete_incomplete_users_task
+  4 | moodle    | \core\task\backup_cleanup_task
+  5 | moodle    | \core\task\tag_cron_task
+  6 | moodle    | \core\task\context_cleanup_task
+  7 | moodle    | \core\task\cache_cleanup_task
+  8 | moodle    | \core\task\messaging_cleanup_task
+(8 rows)
+
+
