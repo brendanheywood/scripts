@@ -217,6 +217,11 @@ sub draw {
 
     }
 
+    # Blank space after table
+    $l1 .= ' ' x ($remainder-1);
+    $l2 .= ' ' x ($remainder-1);
+    $l3 .= ' ' x ($remainder-1);
+
     print "$l1\n$l2\n$l3\n";
 
 
@@ -331,8 +336,9 @@ sub draw {
             print $l;
         }
 
+        print ' ' x ($remainder);
         print "\n";
-        
+
     }
 
     # If the number of rows is more than the screen height then
@@ -386,9 +392,9 @@ while (1) {
                 $state->{'y'}++;
                 # $state->{'cursor'}++;
             } elsif($buffer == '279168') { # left
-                $state->{'x'}-= 1;
+                $state->{'x'}-= floor($state->{maxx} * .1);
             } elsif($buffer == '279167') { # right
-                $state->{'x'}+= 1;
+                $state->{'x'}+= floor($state->{maxx} * .1);
             } elsif($buffer == '279153126') { # page up
                 $state->{'y'}-= $state->{h};
             } elsif($buffer == '279154126'    # page down
@@ -432,8 +438,6 @@ close $TTY;
 # If less lines than terminal height don't enter interactive mode
 # If more lines than say 1000 then stop reading sdtin, flag that there is more, only keep reading if we scroll down that far
 # show clean error when no results
-# sticky left column
-# make headers match cols when pan right
-# show pipes for extra hidden columns to the right
+# If new lines in data then do something sane
 
 
