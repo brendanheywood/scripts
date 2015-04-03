@@ -41,6 +41,9 @@ highlight clear SignColumn
 
 " This is for block code commenting / uncommenting, select text then press Ctrl + // to toggle
 Bundle 'tomtom/tcomment_vim'
+" TODO One minor issue with above is that I want it to retain the selection afterwards, this fixes that:
+
+
 
 " Ctrl + p - support like Sublime / atom (not actually great on big projects like moodle)
 Bundle 'kien/ctrlp.vim'
@@ -108,9 +111,11 @@ Bundle 'groenewege/vim-less'
 " Make all css files less files
 au BufNewFile,BufRead *.css set filetype=less
 
-" Make mysql config files use .ini syntax
-au BufReadPost *.conf,*.cnf,*.tksrc set filetype=dosini
+" make mysql config files use .ini syntax
+au bufreadpost *.conf,*.cnf,*.tksrc set filetype=dosini
 
+" make psql config files use .sql syntax
+au bufreadpost *.psqlrc set filetype=sql
 
 " This is for sublime multi cursor fun
 Bundle 'terryma/vim-multiple-cursors'
@@ -125,6 +130,10 @@ let g:multi_cursor_quit_key='<Esc>'
 " cheat sheet:
 " Press C+n to add more lines
 
+
+
+" Moodle ctags:
+" ctags -R --languages=php --exclude="CVS" --php-kinds=f --regex-PHP='/abstract class ([^ ]*)/\1/c/' --regex-PHP='/interface ([^ ]*)/\1/c/' --regex-PHP='/(public |static |abstract |protected |private )+function ([^ (]*)/\2/f/'
 
 
 
