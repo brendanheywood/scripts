@@ -64,29 +64,30 @@ sub draw {
     $st->{h} = $height;
     my $y1 = $st->{y};
     my $y2 = $y1 + $height - 3; # 4 lines of chrome to take off
-    my $width = $st->{maxx} - 1;
+    my $width = $st->{maxx};
     $st->{w} = $width;
     my $x1 = $st->{x};
-    my $x2 = $x1 + $width - 5;
 
 
     # Reset the window, don't do it the first time
     if ($st->{draw}++ > 0){
         print "\e[H"; # reset
-        print "\e[J"; # clear
+        # print "\e[J"; # clear
     }
 
     my @head = @{ $st->{head} };
 
     # Draw a sticky file header
 
-    my $remainder = $width+1; # How many visible chars left on the screen?
+    my $remainder = $width; # How many visible chars left on the screen?
 
 # print "Rem $remainder orig\n";
 
-    # How many rows do we have? So how wide is that number?
+    # How many rows do we have? So how wide is that number in chars?
     my $nw = length(($#lines+1) . '');
-    #
+
+
+    # Line 1,2,3 which make up the header
     my $l1 = $colc
            . substr($f,1,1) x $nw
            . substr($f,2,1)
@@ -230,11 +231,15 @@ sub draw {
         $col = 0;
         my @parts = split('\|', $line);
 
+        my $remainder = $width; # How many visible chars left on the screen?
+
         # print row number
         print $coln;
         printf "%".$nw."s", $y+1;
         print $colc;
         print substr($f,12,1);
+
+        $remainder -= $nw+1;
 
         # Draw the locked header cols
         for(; $col<$st->{lockcol}; $col++){
@@ -248,19 +253,86 @@ sub draw {
             print $colc;
             print substr($f,13,1);
 
+            $remainder -= ($w+1);
         }
 
+        # print " $remainder ";
 
 
-        $line = join(substr($f,12,1), @parts);
+        my $processed = 0; # how many chars have we processed?
 
-        print substr($f,12,1);
-        print $cold;
-        # printf "%s", substr( $line, $x1, $width);
-        print $colc;
+        # Draw the scrolling header cols
+        for(; $col<=$#head; $col++){
+            $head = $head[$col];
+            chomp $head;
+            $w = length($head) + 1; # add 1 for the border
+            $head =~ s/^\s+/ /g;
 
-        print substr($f,12,1);
+
+            my $offset = 0; # how much of this header will we show?
+
+            my $l;
+
+            # There are 5 scenarios:
+            # 1) cropped from the left completetly
+            # printf "%-2d %-3d %-2d %-2d %s ", $col, $processed, $x1, $w, $remainder, $head;
+            if ($x1 >= $processed + $w){
+                $processed += $w;
+                $w = 0;
+
+            # 2) cropped from the left partially
+            } elsif ($x1 > $processed ) {
+                $offset = $x1 - $processed;
+                $processed += $w;
+                $w -= $offset;
+                $remainder -= $w;
+                # print "left   $remainder\n";
+
+                # what if the screen is too small for a single field?
+                # crop on right too
+
+            # 3) squished
+            } elsif ($remainder <= 0) {
+                $processed += $w;
+                $w = 1;
+                $remainder = 0;
+                last;
+                # print "drop   $remainder\n";
+
+            # 4) cropping the right side
+            } elsif ($w > $remainder) {
+                $processed += $w;
+                $w = $remainder;
+                $remainder -= $w;
+                # print "right   $remainder\n";
+
+            # 4) showing the lot
+            } else {
+                $processed += $w;
+                $remainder -= $w;
+                # print "middle $remainder\n";
+
+            }
+
+            if ($w > 0){
+
+                $l .= $cold;
+                $l .= sprintf("%-".($w-1)."s", substr($parts[$col],$offset, $w-1) );
+                $l .= $colc;
+
+
+                # right border
+                if ($col<$#head) {
+                    $l .= substr($f,12,1);
+                } else {
+                    $l .= substr($f,14,1);
+                }
+            }
+            print $l;
+        }
+
         print "\n";
+        
     }
 
     # If the number of rows is more than the screen height then
