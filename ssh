@@ -1,0 +1,32 @@
+#!/bin/sh
+
+#!/bin/bash
+
+# Just a wrapper to setup remote dir
+# The way this works is store a magic comment in
+# the .ssh/config file which looks like this:
+#
+# host mybox
+#      #RemoteDir /some/dir
+#
+# This gets parsed and magicly added to the ssh
+#
+
+REMOTE="$(awk '
+    $1 == "host" {
+        host = $2;
+        next;
+    }
+    $1 == "#RemoteDir" {
+        $1 = "";
+        sub( /^[[:space:]]*/, "" );
+        printf "%s %s\n", host,   $0;
+    }
+' ~/.ssh/config | grep $@ | cut --delimiter=' ' -f3 )"
+
+
+REMOTECMD="cd $REMOTE; bash -l"
+# echo $CMD
+
+exec /usr/bin/ssh -t $@ $REMOTECMD
+

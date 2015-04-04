@@ -18,6 +18,8 @@ export DEBFULLNAME='Brendan Heywood'
 export DEBEMAIL='brendan@catalyst.net.nz'
 
 
+alias ssh='~/scripts/ssh'
+
 export LESS="-riMSx4 -FX --shift .1"
 # -r  show raw control chars (so colors work)
 # -i  ignore case
