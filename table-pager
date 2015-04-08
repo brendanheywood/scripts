@@ -391,6 +391,10 @@ while (1) {
             } elsif($buffer == '279166') { # down
                 $state->{'y'}++;
                 # $state->{'cursor'}++;
+            } elsif($buffer == '279149595068') { # shift left 1
+                $state->{'x'}-= 1;
+            } elsif($buffer == '279149595067') { # shift right 1
+                $state->{'x'}+= 1;
             } elsif($buffer == '279168') { # left
                 $state->{'x'}-= floor($state->{maxx} * .1);
             } elsif($buffer == '279167') { # right
