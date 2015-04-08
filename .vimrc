@@ -159,9 +159,10 @@ set viminfo='10,\"1000,:20,%,n~/.viminfo
 :autocmd FileType make set noexpandtab
 
 
-
+" Show line numbers
 set number
 
+" Click to move cursor and select text with the mouse
 set mouse=a
 
 set showmatch
@@ -174,6 +175,8 @@ set softtabstop=4
 set expandtab
 
 
+" Show searches as you type them. Can make things slower :(
+set incsearch
 
 function! ResCur()
   if line("'\"") <= line("$")
