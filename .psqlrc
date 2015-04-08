@@ -10,7 +10,7 @@
 \pset null 'NULL'
 
 -- Custom prompt so you always know where you are
-\set PROMPT1 '(%n@%M:%>) [%/] > '
+\set PROMPT1 '%n@%M:%> [%/] $ '
 \set PROMPT2 ''
 
 -- TODO color me up a bit?
@@ -28,12 +28,8 @@
 
 -- \pset columns 1
 
--- TODO write a custom sql table specific pager
--- sticky header and column
--- shows extra columns to the right
--- maxwidth for long and multiline content
--- toggle ellipsis for long content
--- \setenv PAGER less
+-- Always use the pager
+\set pager always
 
 -- TODO Need to make a custom wrapper for this that handles
 -- mdl_ prefix mapping
