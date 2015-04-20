@@ -28,6 +28,7 @@ if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
 } elsif ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
     $command = "export PGPASSWORD=\"$db{pass}\";\n".
 #		"sudo -u postgres psql -h $db{host} $db{name} $db{user}";
+		# TODO "psql -h $db{host} $db{name} $db{user} --port=6432";  -- need to auto detect port as well
 		"psql -h $db{host} $db{name} $db{user}";
 }
 print "Command: $command\n";
