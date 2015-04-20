@@ -10,7 +10,7 @@ if (!-e 'config.php'){
 # find current workig dir
 my $cwd = getcwd;
 
-my $apache =  `grep '$cwd' /etc/apache2/sites-enabled/*`;
+my $apache =  `grep '$cwd' /etc/apache2/sites-enabled/* /etc/httpd/conf/*`;
 $apache =~ /^(.*):/;
 
 my $conf = $1;
