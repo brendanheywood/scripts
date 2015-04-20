@@ -107,9 +107,11 @@ function UberErrorHandler($type, $message='', $file='unknownfile', $line=0)
     {
         $name = 'E_UNKNOWN:'.$type;
     };
-    if ($name != 'E_NOTICE')
-    error_log(@sprintf("UberErrorHandler: %s Error in %s:%d  %s\n URL: %s\n", $name, $file, $line, $message, $_SERVER['REQUEST_URI']));
-
+    if ($name != 'E_NOTICE'
+         && substr($message, 0, 6) != 'unlink'
+    ){
+        error_log(@sprintf("UberErrorHandler: %s Error in %s:%d  %s\n URL: %s\n", $name, $file, $line, $message, $_SERVER['REQUEST_URI']));
+    }
 };
 
 $old_error_handler = set_error_handler("UberErrorHandler");
@@ -134,3 +136,16 @@ function UberExceptionHandler($ex) {
 
 
 $old_exception_handler = set_exception_handler("UberExceptionHandler");
+
+
+function sql($sql){
+
+    global $CFG;
+
+    $sql = preg_replace("/\{(.*?)\}/", $CFG->prefix . "$1", $sql);
+
+    print $sql."\n";
+
+}
+
+

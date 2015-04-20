@@ -38,4 +38,3 @@ function e($d, $t = false){
     error_log($stack);
 }
 }
-

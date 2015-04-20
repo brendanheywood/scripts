@@ -1,0 +1,447 @@
+#!/usr/bin/perl
+
+use utf8;
+use strict;
+use Data::Dumper;
+use POSIX;
+use Term::ANSIColor;
+use Time::HiRes qw (sleep);
+use Term::ReadKey;
+
+
+binmode STDOUT, ":utf8";
+
+# Colors see http://misc.flogisoft.com/bash/tip_colors_and_formatting
+
+my @lines = <STDIN>;
+
+
+my @header = split('\|', shift @lines);
+
+shift @lines; # this is the ---+--+-- line
+
+pop @lines; # 1 blank line at end
+pop @lines; # 2 blank line at end
+
+# print Dumper(@header);
+# exit;
+
+# print @lines;
+# print "EOFEOF";
+# exit;
+
+
+my $state;
+$state->{'x'} = 0;
+$state->{'y'} = 0;
+$state->{'head'} = \@header;
+$state->{'lines'} = @lines;
+$state->{'draw'} = 0;
+$state->{'lockcol'} = 1;
+
+# print Dumper($state);
+# exit;
+sub draw {
+    my ($st) = @_;
+
+    my $f = '┌─┬╥┐     '.
+            '│ │║│     '.
+            '├─┼╫┤     '.
+            '└─┴╨┘     ';
+
+    my $colc = "\e[34m"; # blue fg    - color column
+    my $cold = "\e[39m"; # default fg - color header
+    my $colh = "\e[32m"; # green fg   - color data
+    my $coln = "\e[90m"; # yellow fg  - color row num
+
+
+    # Calc the viewport size
+    my @size = Term::ReadKey::GetTerminalSize STDOUT;
+    $st->{maxx} = $size[0];
+    $st->{maxy} = $size[1];
+
+    my $height = $st->{maxy} - 1;
+    $st->{h} = $height;
+    my $y1 = $st->{y};
+    my $y2 = $y1 + $height - 3; # 4 lines of chrome to take off
+    my $width = $st->{maxx};
+    $st->{w} = $width;
+    my $x1 = $st->{x};
+
+
+    # Reset the window, don't do it the first time
+    if ($st->{draw}++ > 0){
+        print "\e[H"; # reset
+        # print "\e[J"; # clear
+    }
+
+    my @head = @{ $st->{head} };
+
+    # Draw a sticky file header
+
+    my $remainder = $width; # How many visible chars left on the screen?
+
+# print "Rem $remainder orig\n";
+
+    # How many rows do we have? So how wide is that number in chars?
+    my $nw = length(($#lines+1) . '');
+
+
+    # Line 1,2,3 which make up the header
+    my $l1 = $colc
+           . substr($f,1,1) x $nw
+           . substr($f,2,1)
+           . $colc;
+    my $l2 = $coln
+           . ' ' x ($nw-1) . '#'
+           . $colc
+           . substr($f,12,1);
+    my $l3 = substr($f,1,1) x $nw
+           . substr($f,22,1);
+
+    $remainder -= ($nw + 1); # width of number col
+
+# print "Rem $remainder num\n";
+    my $col = 0;
+    my $w;
+
+    my $head;
+
+
+    # Draw the locked header cols
+    for(; $col<$st->{lockcol}; $col++){
+
+        $head = $head[$col];
+        chomp $head;
+        $w = length($head);
+
+        $l1 .= substr($f, 1,1) x $w;
+        $l1 .= substr($f, 3,1);
+
+        $l2 .= $colh;
+        $l2 .= sprintf("%-".$w."s", $head);
+        $l2 .= $colc;
+        $l2 .= substr($f,13,1);
+
+        $l3 .= substr($f,21,1) x $w;
+        $l3 .= substr($f,23,1);
+
+        $remainder -= ($w + 1); # width of number col
+    }
+# print "Rem $remainder lock\n";
+
+    $remainder++;
+
+        my $colsleft = $#head - $col + 1;
+        $remainder -= $colsleft;
+#  print "Rem $remainder removed $colsleft\n";
+
+
+
+    my $processed = 0; # how many chars have we processed?
+
+    # Draw the scrolling header cols
+    for(; $col<=$#head; $col++){
+        $head = $head[$col];
+        chomp $head;
+        $w = length($head) + 1; # add 1 for the border
+        $head =~ s/^\s+/ /g;
+
+
+        my $offset = 0; # how much of this header will we show?
+
+        # There are 5 scenarios:
+        # 1) cropped from the left completetly
+        # printf "%-2d %-3d %-2d %-2d %s ", $col, $processed, $x1, $w, $remainder, $head;
+        if ($x1 >= $processed + $w){
+            $processed += $w;
+            $remainder++;
+            $w = 0;
+
+        # 2) cropped from the left partially
+        } elsif ($x1 > $processed ) {
+            $offset = $x1 - $processed;
+            $processed += $w;
+            $w -= $offset;
+            $remainder -= $w - 1;
+            # print "left   $remainder\n";
+
+            # what if the screen is too small for a single field?
+            # crop on right too
+
+        # 3) squished
+        } elsif ($remainder <= 0) {
+            $processed += $w;
+            $w = 1;
+            $remainder = 0;
+            # print "drop   $remainder\n";
+
+        # 4) cropping the right side
+        } elsif ($w > $remainder) {
+            $processed += $w;
+            $w = $remainder;
+            $remainder -= $w - 1;
+            # print "right   $remainder\n";
+
+
+        # 4) showing the lot
+        } else {
+            $processed += $w;
+            $remainder -= $w - 1;
+            # print "middle $remainder\n";
+
+        }
+
+
+        if ($w > 0){
+
+            $l1 .= substr($f,1,1) x ($w-1);
+
+            $l2 .= $colh;
+            $l2 .= sprintf("%-".($w-1)."s", substr($head,$offset, $w-1) );
+            $l2 .= $colc;
+
+            $l3 .= substr($f,21,1) x ($w-1);
+
+            # right border
+            if ($col<$#head) {
+                $l1 .= substr($f,2,1);
+                $l2 .= substr($f,12,1);
+                $l3 .= substr($f,22,1);
+            } else {
+                $l1 .= substr($f, 4,1);
+                $l2 .= substr($f,14,1);
+                $l3 .= substr($f,24,1);
+            }
+        }
+
+    }
+
+    # Blank space after table
+    $l1 .= ' ' x ($remainder-1);
+    $l2 .= ' ' x ($remainder-1);
+    $l3 .= ' ' x ($remainder-1);
+
+    print "$l1\n$l2\n$l3\n";
+
+
+    my $file = '';
+    my $lnum = -1;
+    my $text = '';
+    my $mode = '';
+    for (my $y = $y1; $y < $y2; $y++){
+        my $line = $lines[$y];
+        chomp $line;
+
+        $col = 0;
+        my @parts = split('\|', $line);
+
+        my $remainder = $width; # How many visible chars left on the screen?
+
+        # print row number
+        print $coln;
+        printf "%".$nw."s", $y+1;
+        print $colc;
+        print substr($f,12,1);
+
+        $remainder -= $nw+1;
+
+        # Draw the locked header cols
+        for(; $col<$st->{lockcol}; $col++){
+
+            $head = $head[$col];
+            chomp $head;
+            $w = length($head);
+
+            print $cold;
+            print sprintf("%-".$w."s", $parts[$col]);
+            print $colc;
+            print substr($f,13,1);
+
+            $remainder -= ($w+1);
+        }
+
+        # print " $remainder ";
+
+
+        my $processed = 0; # how many chars have we processed?
+
+        # Draw the scrolling header cols
+        for(; $col<=$#head; $col++){
+            $head = $head[$col];
+            chomp $head;
+            $w = length($head) + 1; # add 1 for the border
+            $head =~ s/^\s+/ /g;
+
+
+            my $offset = 0; # how much of this header will we show?
+
+            my $l;
+
+            # There are 5 scenarios:
+            # 1) cropped from the left completetly
+            # printf "%-2d %-3d %-2d %-2d %s ", $col, $processed, $x1, $w, $remainder, $head;
+            if ($x1 >= $processed + $w){
+                $processed += $w;
+                $w = 0;
+
+            # 2) cropped from the left partially
+            } elsif ($x1 > $processed ) {
+                $offset = $x1 - $processed;
+                $processed += $w;
+                $w -= $offset;
+                $remainder -= $w;
+                # print "left   $remainder\n";
+
+                # what if the screen is too small for a single field?
+                # crop on right too
+
+            # 3) squished
+            } elsif ($remainder <= 0) {
+                $processed += $w;
+                $w = 1;
+                $remainder = 0;
+                last;
+                # print "drop   $remainder\n";
+
+            # 4) cropping the right side
+            } elsif ($w > $remainder) {
+                $processed += $w;
+                $w = $remainder;
+                $remainder -= $w;
+                # print "right   $remainder\n";
+
+            # 4) showing the lot
+            } else {
+                $processed += $w;
+                $remainder -= $w;
+                # print "middle $remainder\n";
+
+            }
+
+            if ($w > 0){
+
+                $l .= $cold;
+                $l .= sprintf("%-".($w-1)."s", substr($parts[$col],$offset, $w-1) );
+                $l .= $colc;
+
+
+                # right border
+                if ($col<$#head) {
+                    $l .= substr($f,12,1);
+                } else {
+                    $l .= substr($f,14,1);
+                }
+            }
+            print $l;
+        }
+
+        print ' ' x ($remainder);
+        print "\n";
+
+    }
+
+    # If the number of rows is more than the screen height then
+    # Draw a position and status bar
+
+# print Dumper($st);
+
+    print "\e[39m"; # default fg
+    print "\e[7m"; # invert
+    print " Rows ".($y1+1)."-$y2 / ". ($#lines+1). ' ';
+    printf "%d% ", 100 * ($y2 / ($#lines+1)); # per %
+    print " $x1 ";
+
+    print "\e[27m"; # reset invert
+    print "\e[?25l    "; # no blinking cursor
+}
+
+draw($state);
+
+open my $TTY, '<', '/dev/tty';
+ReadMode('cbreak', $TTY);
+
+$SIG{INT} = sub {
+    ReadMode('normal', $TTY);
+    print "\n";
+    print "\e[?25h    "; # reset blinking cursor
+    exit;
+};
+
+my $buffer = '';
+
+while (1) {
+    my $char = ReadKey(-1, $TTY);
+    if (!defined $char){
+
+        if ($buffer){
+
+            my $per;
+            my $lh = $#lines - $state->{h} + 4; # lines of chrome
+
+            if (    $buffer == '27'        # esc
+                 || $buffer == '113')    { # q
+                last;
+            } elsif($buffer == '10') { # up
+                $state->{selected} = 1;
+                last;
+            } elsif($buffer == '279165') { # up
+                $state->{'y'}--;
+                # $state->{'cursor'}--;
+            } elsif($buffer == '279166') { # down
+                $state->{'y'}++;
+                # $state->{'cursor'}++;
+            } elsif($buffer == '279149595068') { # shift left 1
+                $state->{'x'}-= 1;
+            } elsif($buffer == '279149595067') { # shift right 1
+                $state->{'x'}+= 1;
+            } elsif($buffer == '279168') { # left
+                $state->{'x'}-= floor($state->{maxx} * .1);
+            } elsif($buffer == '279167') { # right
+                $state->{'x'}+= floor($state->{maxx} * .1);
+            } elsif($buffer == '279153126') { # page up
+                $state->{'y'}-= $state->{h};
+            } elsif($buffer == '279154126'    # page down
+                 || $buffer == '32') {        # space
+                $state->{'y'}+= $state->{h};
+            } elsif ($buffer >= '48' and $buffer <= '57'){        # 1 = 10%, 9 = 90%
+                $per = $buffer*1 - 48;
+                if ($per == 0){ $per = 10; }
+                $per--;
+                $state->{'y'} = floor($per * $lh / 9);
+            }
+
+            # Don't go out of bounds
+            if ($state->{x} < 0 ){ $state->{x} = 0; }
+            if ($state->{y} < 0 ){ $state->{y} = 0; }
+            if ($state->{y} > $lh){ $state->{y} = $lh; }
+
+
+            draw($state);
+            print "buffer: '$buffer' $per";
+        }
+
+        $buffer = '';
+        sleep (0.005);
+        next;
+    }
+
+    $buffer .= ord($char);
+}
+
+print "\n";
+
+ReadMode('normal', $TTY);
+print "\e[?25h"; # reset blinking cursor
+print "\e[21m"; # not bold
+print "\e[39m"; # default fg
+print "\e[49m"; # default bg
+close $TTY;
+
+# TODO
+# If less lines than terminal height don't enter interactive mode
+# If more lines than say 1000 then stop reading sdtin, flag that there is more, only keep reading if we scroll down that far
+# show clean error when no results
+# If new lines in data then do something sane
+
+

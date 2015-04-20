@@ -12,14 +12,33 @@
 	compression = 0
 
 [alias]
+
+    # Super quick and improved shorthands
+    a = add
+    b = branch
+    c = commit
+    d = diff
+    l = log --name-status
+    s = !git status && git log --oneline -n 2
+    # s = status
+    r = remote -v
+
     # view all commits on a ascii time line showing merges
     timeline = log --graph --decorate --oneline
 
-    # Recursively pull all submodules
-#    pull-all = ~/scripts/git-pull-all
-    pull-all = !git pull --rebase --prune $@ && git submodule update --init --recursive
+    ## Failed attempt at global custom commit template:
+    ## status = status && git log -n 7 --oneline
 
-    # but sometimes submodules are only a hash, not a branch, this shows which ones are broken
+    # Recursively pull all submodules
+    pull-all = !git pull --rebase --prune $@ && git submodule update --init --recursive
+    pull-all-fast = "submodule foreach git pull origin master \\&"
+
+    # Recursively push all submodules
+    push-all = submodule foreach git push
+    # for git 1.7.11 and later
+    #push-all = push --recurse-submodules=on-demand
+
+    # Sometimes submodules are only a hash, and not a branch, this shows which ones are broken
     submodule-branches = "submodule foreach --quiet 'echo \"$(git rev-parse --abbrev-ref HEAD)    => $name\"'"
 
     # cheat sheet, not really a need for alias:
@@ -27,10 +46,22 @@
     # maybe auto detect? status which shows tracing?
     track-master = branch --set-upstream master  origin/master
 
+    # Quickly squash the last two commits
+    squash-recent = rebase -i HEAD~5
 
     config-global = config --global -e
     config-local = config -e
 
+    # unadd - makes more sense to me
+    unadd = reset
+
+    # uncommit the last commit back into staging area (need to then unadd it if you want)
+    uncommit = reset --soft HEAD~1
+
+    remote-all = git-remote-all
+
+[status]
+#    submodulesummary = 1
 
 [http]
     # see http://stackoverflow.com/questions/2702731/git-fails-when-pushing-commit-to-github

@@ -17,6 +17,11 @@ Bundle 'airblade/vim-gitgutter'
 let g:gitgutter_realtime = 0
 let g:gitgutter_eager = 0
 
+" keyboard commands:
+" ]c => next hunk
+" [c => prev hunk
+
+
 " Adds the cool branch / commit aware coloured status line on the bottom
 Bundle 'bling/vim-airline'
 set laststatus=2
@@ -36,6 +41,9 @@ highlight clear SignColumn
 
 " This is for block code commenting / uncommenting, select text then press Ctrl + // to toggle
 Bundle 'tomtom/tcomment_vim'
+" TODO One minor issue with above is that I want it to retain the selection afterwards, this fixes that:
+
+
 
 " Ctrl + p - support like Sublime / atom (not actually great on big projects like moodle)
 Bundle 'kien/ctrlp.vim'
@@ -59,7 +67,7 @@ autocmd VimEnter * if argc() == 0 && !exists("s:std_in") | NERDTree | endif
 " Close vim when only nerdtree is left"
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
-map <C-n> :NERDTreeToggle<CR>
+"map <C-n> :NERDTreeToggle<CR>
 
 
 " press tab to indent and shift tab to unindent a block of text
@@ -69,6 +77,17 @@ vmap <S-Tab> <gv
 " Show trailing whitespace eg at the end of this line is a crap which should be red  
 Bundle 'bronson/vim-trailing-whitespace'
 
+" This makes text wrap at spaces instead of mid-word, nicer for long wrapped text or markdown
+set linebreak
+
+" When really long lines wrapp so much they go off the screen they aren't shown with a @ instead" This fixes that and shows them:
+set display+=lastline
+
+" When lines are broken, as well as not showing a new line number also show an ellipsis to make it really clear that this is a wrapped line and not a new line
+set showbreak=...\ 
+
+" This does nicer wrapping when line is indented, but looks to not be compiled in :(
+" set breakindent
 
 
 " All things folding and outlining, currently REALLY slow, need something better
@@ -92,10 +111,35 @@ Bundle 'groenewege/vim-less'
 " Make all css files less files
 au BufNewFile,BufRead *.css set filetype=less
 
-" Make mysql config files use .ini syntax
-au BufReadPost *.conf,*.cnf set filetype=dosini
+" make mysql config files use .ini syntax
+au bufreadpost *.conf,*.cnf,*.tksrc set filetype=dosini
+
+" make psql config files use .sql syntax
+au bufreadpost *.psqlrc set filetype=sql
+
+" This is for sublime multi cursor fun
+Bundle 'terryma/vim-multiple-cursors'
+
+"let g:multi_cursor_use_default_mapping=0
+" Default mapping
+let g:multi_cursor_next_key='<C-n>'
+let g:multi_cursor_prev_key='<C-p>'
+let g:multi_cursor_skip_key='<C-x>'
+let g:multi_cursor_quit_key='<Esc>'
+
+" cheat sheet:
+" Press C+n to add more lines
 
 
+
+" Moodle ctags:
+" ctags -R --languages=php --exclude="CVS" --php-kinds=f --regex-PHP='/abstract class ([^ ]*)/\1/c/' --regex-PHP='/interface ([^ ]*)/\1/c/' --regex-PHP='/(public |static |abstract |protected |private )+function ([^ (]*)/\2/f/'
+
+
+
+" This is for IDE like popup auto complete
+" crap need newer ubuntu first :(
+" Bundle 'Valloric/YouCompleteMe'
 
 " End of bundle stuff
 filetype on
@@ -115,9 +159,10 @@ set viminfo='10,\"1000,:20,%,n~/.viminfo
 :autocmd FileType make set noexpandtab
 
 
-
+" Show line numbers
 set number
 
+" Click to move cursor and select text with the mouse
 set mouse=a
 
 set showmatch
@@ -130,7 +175,8 @@ set softtabstop=4
 set expandtab
 
 
-set clipboard=unnamed
+" Show searches as you type them. Can make things slower :(
+set incsearch
 
 function! ResCur()
   if line("'\"") <= line("$")

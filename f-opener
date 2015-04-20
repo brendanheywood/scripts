@@ -1,0 +1,274 @@
+#!/usr/bin/perl
+
+use strict;
+use Data::Dumper;
+use POSIX;
+use Term::ANSIColor;
+use Time::HiRes qw (sleep);
+use Term::ReadKey;
+
+# Colors see http://misc.flogisoft.com/bash/tip_colors_and_formatting
+
+my @lines = <STDIN>;
+
+unshift @lines, '--';
+
+my @matches;
+for my $i (0 .. $#lines) {
+    my $line = $lines[$i];
+    if ($line =~ /^(.*?)\:(\d+)\:(.*)$/){
+        push @matches, [$i, $1, $2 ];
+    }
+}
+
+my $state;
+$state->{'grep'} = $ARGV[0];
+$state->{'x'} = 0;
+$state->{'y'} = 0;
+$state->{'lines'} = @lines;
+$state->{'draw'} = 0;
+$state->{'cursor'} = 0; # which match do we focus on?
+$state->{'matches'} = \@matches;
+
+# print Dumper($state);
+# exit;
+sub draw {
+    my ($st) = @_;
+    my @size = Term::ReadKey::GetTerminalSize STDOUT;
+
+    my @matches = @{ $st->{matches} };
+
+    print $st->{cursor};
+    my @cursor = @{
+        $matches[$st->{cursor}]
+    };
+
+    my $focus = $cursor[0];
+
+    $st->{maxx} = $size[0];
+    $st->{maxy} = $size[1];
+
+    # Reset the window, don't do it the first time
+    if ($st->{draw}++ > 0){
+        print "\e[H"; # reset
+        # print "\e[J"; # clear
+    }
+
+    # Draw a sticky file header
+
+    # Draw the lines we want
+    my $height = $st->{maxy} - 1;
+    $st->{h} = $height;
+    my $y1 = $st->{y};
+    my $y2 = $y1 + $height - 0;
+    my $width = $st->{maxx} - 1;
+    $st->{w} = $width;
+    my $x1 = $st->{x};
+    my $x2 = $x1 + $width - 5;
+
+    my $file = '';
+    my $lnum = -1;
+    my $text = '';
+    my $mode = '';
+    my $grep = $st->{grep};
+    for (my $y = $y1; $y < $y2; $y++){
+        my $line = $lines[$y];
+        chomp $line;
+
+        if ($line eq '--'){
+            my $line = $lines[$y+1];
+            $line =~ /^(.*?)\-(\d+)\-(.*)$/;
+
+            print
+                ""
+              . "\e[36m" # cyan fg
+              . $1
+              # . sprintf('%-'.($width).'s', $1)
+
+              . " "
+              . "\e[90m"  # dark grey
+              # . "\e[100m" # gray bg
+              . ( '-' x ($width - length($1) ))
+              . "\e[39m" # default fg
+              # . "\e[49m" # default bg
+              . "\n";
+            next;
+        }
+
+        $file = '';
+        $lnum = -1;
+        $text = 'crap';
+        $mode = '?';
+        if ($line =~ /^(.*?)\-(\d+)\-(.*)$/){
+            $file = $1;
+            $lnum = $2;
+            $text = $3;
+            $mode = '-';
+        } elsif ($line =~ /^(.*?)\:(\d+)\:(.*)$/){
+            $file = $1;
+            $lnum = $2;
+            $text = $3;
+            $mode = ':';
+        }
+
+        my $start = '';
+        if ($y == $focus){
+            $start .= ''
+          . "\e[1m"  # bold fg
+          . "\e[44m" # blue bg
+          . '  '
+          . $lnum
+          . ' '
+          # . "\e[0m" # not bold
+          # . "\e[49m" # default bg
+          . "\e[100m" # gray bg
+          ;
+        } else {
+            $start .=
+            "\e[32m" # green fg
+          . '  '
+          . $lnum
+          . "\e[36m" # cyan fg
+          . $mode
+          . "\e[39m" # default fg
+          ;
+        }
+        my $sx = length($lnum)+2;
+        my $wx = $width - $sx;
+        my $sub = sprintf("%-".$wx."s", substr($text, $x1, $wx) );
+
+
+        my $on;
+        my $of;
+        my $end;
+        if ($y == $focus){
+            $on  .= "\e[41m"; # red bg
+            # $of  .= "\e[49m"; # default bg
+            $of  .= "\e[100m"; # default bg
+            $end .= "\e[21m"; # not bold
+            $end .= "\e[49m"; # default bg
+
+        } else {
+            $on  .= "\e[91m"; # red fg
+            $on  .= "\e[1m";  # bold
+            $of  .= "\e[21m"; # not bold
+            $of  .= "\e[39m"; # default fg
+        }
+        $sub =~ s/($grep)/$on$1$of/g;
+
+        print "$start$sub$end\n";
+    }
+
+    # If the number of rows is more than the screen height then
+    # Draw a position and status bar
+
+# print Dumper($st);
+
+# search terms
+# print $state->{grep};
+    print "\e[7m"; # invert
+    print " lines ".($y1+1)."-$y2 / ". ($#lines+1). ' ';
+    printf "%d% ", 100 * ($y2 / ($#lines+1)); # per %
+
+    printf "Found %d out of %d", $st->{cursor}, $#matches, $st->{cursor};
+
+    print "\e[27m"; # reset invert
+    print "\e[?25l    "; # no blinking cursor
+    # print "crap\n";
+}
+
+draw($state);
+
+open my $TTY, '<', '/dev/tty';
+ReadMode('cbreak', $TTY);
+
+$SIG{INT} = sub {
+    ReadMode('normal', $TTY);
+    print "\n";
+    print "\e[?25h    "; # reset blinking cursor
+    exit;
+};
+
+my $buffer = '';
+
+while (1) {
+    my $char = ReadKey(-1, $TTY);
+    if (!defined $char){
+
+        if ($buffer){
+
+            my $per;
+            my $lh = $#lines - $state->{h} + 1;
+
+            if (    $buffer == '27'        # esc
+                 || $buffer == '113')    { # q
+                last;
+            } elsif($buffer == '10') { # up
+                $state->{selected} = 1;
+                last;
+            } elsif($buffer == '279165') { # up
+                # $state->{'y'}--;
+                $state->{'cursor'}--;
+            } elsif($buffer == '279166') { # down
+                # $state->{'y'}++;
+                $state->{'cursor'}++;
+            } elsif($buffer == '279168') { # left
+                $state->{'x'}-= 4;
+            } elsif($buffer == '279167') { # right
+                $state->{'x'}+= 4;
+            } elsif($buffer == '279153126') { # page up
+                $state->{'y'}-= $state->{h};
+            } elsif($buffer == '279154126'    # page down
+                 || $buffer == '32') {        # space
+                $state->{'y'}+= $state->{h};
+            } elsif ($buffer >= '48' and $buffer <= '57'){        # 1 = 10%, 9 = 90%
+                $per = $buffer*1 - 48;
+                if ($per == 0){ $per = 10; }
+                $per--;
+                $state->{'y'} = floor($per * $lh / 9);
+            }
+
+            if ($state->{cursor} < 0 ){ $state->{cursor} = 0; }
+            if ($state->{cursor} > $#matches ){ $state->{cursor} = $#matches; }
+
+            # If cursor gets near top or bottom then jump
+            # TODO
+
+            # Don't go out of bounds
+            if ($state->{x} < 0 ){ $state->{x} = 0; }
+            if ($state->{y} < 0 ){ $state->{y} = 0; }
+            if ($state->{y} > $lh){ $state->{y} = $lh; }
+
+
+            draw($state);
+            print "buffer: '$buffer' $per";
+        }
+
+        $buffer = '';
+        sleep (0.005);
+        next;
+    }
+
+    $buffer .= ord($char);
+}
+
+print "\n";
+
+ReadMode('normal', $TTY);
+print "\e[?25h"; # reset blinking cursor
+print "\e[21m"; # not bold
+print "\e[39m"; # default fg
+print "\e[49m"; # default bg
+close $TTY;
+
+if ($state->{selected} == 1){
+    my @sel = @{ $matches[ $state->{cursor} ] };
+    my $cmd = "vim +$sel[2] $sel[1] < /dev/tty";
+    exec ($cmd);
+}
+# TODO
+# can we insert the search query into the vim search history so you can just press b to jump to it?
+# If less lines than terminal height don't enter interactive mode
+# If more lines than say 1000 then stop reading sdtin, flag that there is more, only keep reading if we scroll down that far
+# show clean error when no results
+

@@ -1,4 +1,37 @@
 
--- Nothing here yet.
+-- AWESOME TRICK:
+-- press \e to edit the last query buffer in vim so you
+-- can progressively edit up large complex multi line sql
+-- and save a *heap* of time
+-- TODO will make a vim filter that swaps {table} for mdl_table
 
+
+-- show the difference between '' and null visually
+\pset null 'NULL'
+
+-- Custom prompt so you always know where you are
+\set PROMPT1 '%n@%M:%> [%/] $ '
+\set PROMPT2 ''
+
+-- TODO color me up a bit?
+-- \set PROMPT1 '%[%033[1;33;40m%]%n@%/%R%[%033[0m%]%# '
+
+-- Lotsa up!
+\set HISTSIZE 2000
+
+-- Get rid of duplicate sequences in the history
+\set HISTCONTROL ignoredups
+
+-- Show timing data for every query
+\timing
+
+
+-- \pset columns 1
+
+-- Always use the pager
+\set pager always
+
+-- TODO Need to make a custom wrapper for this that handles
+-- mdl_ prefix mapping
+-- \setenv PSQL_EDITOR
 

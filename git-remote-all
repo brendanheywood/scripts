@@ -1,0 +1,29 @@
+#!/usr/bin/perl -w
+
+$git_root = `git rev-parse --show-toplevel`;
+$git_root =~ s/^\s+//;
+$git_root =~ s/\s+$//;
+chdir($git_root) or die "$!";
+
+$subs =  `git submodule --quiet foreach 'echo "# \$path"; git remote -v'`;
+
+@subs = split /\n/, $subs;
+
+$sub = '';
+$lastsub = '';
+
+foreach(@subs){
+
+    if ($_ =~ /^# (.*$)/){
+        $sub = $1;
+    } else {
+        $_ =~ /(.*)(\(.*\))/;
+        if ($2 ne '(fetch)'){
+            next;
+        }
+        $show = ($sub eq $lastsub ? '' : $sub);
+        printf ("%-55s %s\n", $show, $1);
+        $lastsub = $sub;
+    }
+}
+

@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+# Just a wrapper to setup remote dir
+# The way this works is store a magic comment in
+# the .ssh/config file which looks like this:
+#
+# host mybox
+#      #RemoteDir /some/dir
+#
+# This gets parsed and magicly added to the ssh
+#
+
+use strict;
+use File::Basename;
+
+my $cmd = join ' ', @ARGV ;
+my $fh;
+my $target = $ARGV[0];
+my $filename = dirname(dirname($0)) . '/.ssh/config';
+
+if ($#ARGV eq 0 and open($fh, '<:encoding(UTF-8)', $filename)) {
+
+    my $host = '';
+    my $match = '';
+
+    while (my $row = <$fh>) {
+        chomp $row;
+        if ($row =~ /^host (.*)/i){
+            $host = " $1 ";
+            if ($host =~ /\s$target\s/) {
+                $match = $host;
+            } else {
+                $match = '';
+            }
+        }
+        if ($match and $row =~ /RemoteDir (\S*)/i){
+            $cmd = "-t $target \"cd $1; bash -l\"";
+        }
+    }
+}
+
+$cmd = "/usr/bin/ssh $cmd";
+
+# print "$cmd \n";
+
+exec($cmd);
+

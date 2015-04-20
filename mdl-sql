@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# This reaches into config.php and grabs the DB details and makes it super easy to 
+# This reaches into config.php and grabs the DB details and makes it super easy to
 # make and restore backups and login to the DB without typing a bunch of shit
 
 if (!-e 'config.php'){
@@ -21,16 +21,21 @@ foreach $line (<CONF>){
 }
 close CONF;
 
-	
 print "Login:\n";
 if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
     $command = "mysql -u $db{user} --password='$db{pass}' $db{name}";
 } elsif ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
-    $command = "export PGPASSWORD=\"$db{pass}\";\n".
-#		"sudo -u postgres psql -h $db{host} $db{name} $db{user}";
+    $command = ""
+            . "export PAGER=\"table-pager\";\n"
+            . "export PGPASSWORD=\"$db{pass}\";\n"
+            . "export PSQL_EDITOR='vim +1 +\"set syntax=sql\"';\n"
+            # +1 forces cursor onto line 1
+            # set the sytax to sql as we don't have a good file extension
+            . "export PGPASSWORD=\"$db{pass}\";\n"
+#		    . "sudo -u postgres psql -h $db{host} $db{name} $db{user}";
 		# TODO "psql -h $db{host} $db{name} $db{user} --port=6432";  -- need to auto detect port as well
-		"psql -h $db{host} $db{name} $db{user}";
+		    ."psql -h $db{host} $db{name} $db{user}";
 }
-print "Command: $command\n";
+# print "Command: $command\n";
 system ($command) == 0  || die;
 
