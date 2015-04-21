@@ -68,6 +68,12 @@ sub draw {
     $st->{w} = $width;
     my $x1 = $st->{x};
 
+    my $residue = 0;
+    if ($#lines <= $height - 3) {
+        $y1 = 0;
+        $y2 = $#lines + 1;
+        $residue = $height - $y2 -3;
+    }
 
     # Reset the window, don't do it the first time
     if ($st->{draw}++ > 0){
@@ -340,6 +346,11 @@ sub draw {
         print "\n";
 
     }
+
+    # Print lots of white space to fill out the screen
+    # TODO but only is it's a redraw
+    my $clear = ' ' x $width . "\n";
+    print $clear x $residue;
 
     # If the number of rows is more than the screen height then
     # Draw a position and status bar
