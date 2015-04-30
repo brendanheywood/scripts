@@ -108,6 +108,7 @@ function UberErrorHandler($type, $message='', $file='unknownfile', $line=0)
     };
     if ($name != 'E_NOTICE'
          && substr($message, 0, 6) != 'unlink'
+         && substr($message, 0, 5) != 'chmod'
     ){
         error_log(@sprintf("UberErrorHandler: %s Error in %s:%d  %s\n URL: %s\n", $name, $file, $line, $message, $_SERVER['REQUEST_URI']));
     }
