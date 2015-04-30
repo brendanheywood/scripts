@@ -3,6 +3,31 @@ alias gt=git
 alias gut=git
 alias got=git
 
+#
+#PS1='${debian_chroot:+($debian_chroot)}'
+
+PS1=''
+
+# user@host in green
+# PS1="$PS1\[\033[01;32m\]"
+# user@host
+PS1="$PS1\u@\h"
+# turn off green
+# PS1="$PS1\[\033[00m\]"
+
+# 10:42:15 time with seconds
+PS1="$PS1 \T "
+
+# pale blue
+PS1="$PS1\[\033[01;34m\]"
+# cwd
+PS1="$PS1\w"
+# color reset
+PS1="$PS1\[\033[00m\] "
+
+# $ prompt
+PS1="$PS1\$ "
+
 
 alias l='ls -CFa'
 
@@ -17,8 +42,11 @@ eval "$(/home/brendan/moosh/bin/moosh init -)"
 export DEBFULLNAME='Brendan Heywood'
 export DEBEMAIL='brendan@catalyst.net.nz'
 
-
+# This add magic, like cd'ing to a remote dir on login :)
 alias ssh='~/scripts/ssh'
+
+# I always seem to type this!
+alias cd..='cd ..'
 
 export LESS="-riMSx4 -FX --shift .1"
 # -r  show raw control chars (so colors work)
