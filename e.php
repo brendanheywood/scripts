@@ -14,7 +14,7 @@ if (!function_exists('e')){
 function e($d, $t = false){
     $trace = debug_backtrace();
 
-    $stack = 'DEBUG: '.$trace[0]['file'] . ':'.$trace[0]['line'] .' => '. print_r($d,1);
+    $stack = $trace[0]['file'] . ':'.$trace[0]['line'] .' => '. print_r($d,1);
 
     if ($t){
         unset($trace[0]); //Remove call to this function from stack trace
