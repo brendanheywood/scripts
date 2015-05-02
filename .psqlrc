@@ -26,6 +26,8 @@
 \timing
 
 
+\set format=unaligned
+
 -- \pset columns 1
 
 -- Always use the pager

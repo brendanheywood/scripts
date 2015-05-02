@@ -35,6 +35,7 @@ if (!$files){
 my $grep = join(' ', reverse @grep);
 
 my $cmd = "grep \"$grep\" -r --color=always -n -C3 $files | less -R";
+# my $cmd = "grep \"$grep\" -r -n -C3 $files | f-opener \"$grep\" ";
 #print "$cmd\n";
 system($cmd);
 

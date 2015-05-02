@@ -22,5 +22,7 @@ $log =~ s/\$\{APACHE_LOG_DIR\}/\/var\/log\/apache2/;
 
 print "$log \n";
 
-system("tail -f $log");
+#system("tail -f $log | sed 's/\\\\n/\\n/g' | sed 's/<\\/li>/<\\/li>\\n/g' ");
+system("tail -f $log | sed 's/\\\\n/\\n/g' ");
+#system("tail -f $log  ");
 

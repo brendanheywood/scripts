@@ -31,8 +31,8 @@ while (<>) {
 		@added = ();
 
 		print;
-		$in_hunk = /^$COLOR*[\@ ]/;
-	}
+        $in_hunk = /^$COLOR*[\@ ]/;
+    }
 
 	# Most of the time there is enough output to keep things streaming,
 	# but for something like "git log -Sfoo", you can get one early

@@ -25,6 +25,14 @@ PS1="$PS1\w"
 # color reset
 PS1="$PS1\[\033[00m\] "
 
+# git prompt
+export GIT_PS1_SHOWDIRTYSTATE=1
+export GIT_PS1_SHOWCOLORHINTS=1
+. ~/scripts/git-prompt.sh
+# This uses ' quotes not " as it's exectued at prompt-time, not source-time
+GITP='$(__git_ps1 "(%s)")'
+PS1=$PS1$GITP
+
 # $ prompt
 PS1="$PS1\$ "
 

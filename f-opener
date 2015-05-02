@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+use utf8;
 use strict;
 use Data::Dumper;
 use POSIX;
@@ -7,6 +8,8 @@ use Term::ANSIColor;
 use Time::HiRes qw (sleep);
 use Term::ReadKey;
 
+binmode(STDIN, ":encoding(utf8)");
+binmode STDOUT, ":utf8";
 # Colors see http://misc.flogisoft.com/bash/tip_colors_and_formatting
 
 my @lines = <STDIN>;
@@ -22,7 +25,8 @@ for my $i (0 .. $#lines) {
 }
 
 my $state;
-$state->{'grep'} = $ARGV[0];
+my $grep = $ARGV[0];
+$state->{'grep'} = $grep;
 $state->{'x'} = 0;
 $state->{'y'} = 0;
 $state->{'lines'} = @lines;
@@ -264,6 +268,9 @@ close $TTY;
 if ($state->{selected} == 1){
     my @sel = @{ $matches[ $state->{cursor} ] };
     my $cmd = "vim +$sel[2] $sel[1] < /dev/tty";
+    # print $cmd;
+    print "\e[H"; # reset
+    print "\e[J"; # clear
     exec ($cmd);
 }
 # TODO
