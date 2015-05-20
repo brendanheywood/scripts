@@ -16,6 +16,7 @@ not the main page)
 Just add this early in your page, it's already in local moodle config just uncomment it:
 
 include_once('/var/www/common/dev-conf/debug.php');
+include_once('/home/haywoodb/scripts/debug.php');
 
 NOTE: If Moodle/drupal/whatever also creates it own handlers, add this script AFTER them
 as this will chain to the existing handler.
