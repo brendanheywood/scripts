@@ -360,7 +360,9 @@ sub draw {
     print "\e[39m"; # default fg
     print "\e[7m"; # invert
     print " Rows ".($y1+1)."-$y2 / ". ($#lines+1). ' ';
-    printf "%d% ", 100 * ($y2 / ($#lines+1)); # per %
+    if ($#lines > 0) {
+        printf "%d% ", 100 * ($y2 / ($#lines+1)); # per %
+    }
     print " $x1 ";
 
     print "\e[27m"; # reset invert
