@@ -10,14 +10,6 @@ my %hosts;
 # then google them to find more details and track who they are
 
 my %map = (
-# Totara
-    'totara.com'                => 'totaralms.com',
-    'skodak'                    => 'totaralms.com',
-    'samhemelryk'               => 'totaralms.com',
-    'skodak.org'                => 'totaralms.com',
-    'sam.hemelryk@gmail.com'    => 'totaralms.com',
-    'jerome'                    => 'totaralms.com',
-
 # Moodle HQ
     'moodler'                   => 'moodle.org',
     'moodlerobot'               => 'totara.com',
@@ -32,8 +24,21 @@ my %map = (
     'dongsheng@moodle.com'      => 'moodle.org',
     'imdongsheng@gmail.com'     => 'moodle.org',
     'mouneyrac.com'             => 'moodle.org', # since left
+    'server2.moodle.com'        => 'moodle.org',
+    'damyon.wiese@gmail.com'    => 'moodle.org',
+    'talktodan@gmail.com'       => 'moodle.org',
+    'poltawski'                 => 'moodle.org',
 
 ## Partners
+
+# Totara
+    'totara.com'                => 'totaralms.com',
+    'skodak'                    => 'totaralms.com',
+    'samhemelryk'               => 'totaralms.com',
+    'skodak.org'                => 'totaralms.com',
+    'sam.hemelryk@gmail.com'    => 'totaralms.com',
+    'jerome'                    => 'totaralms.com',
+    'simoncoggins@gmail.com'    => 'totaralms.com',
 
 # Catalyst
     'nigelcunningham.com.au'    => 'catalyst.net.nz',
@@ -41,6 +46,9 @@ my %map = (
     'danmarsden.com'            => 'catalyst.net.nz',
     'danmarsden'                => 'catalyst.net.nz',
     'mattc-catalyst'            => 'catalyst.net.nz',
+    'catalyst-au.net'           => 'catalyst.net.nz',
+    'mylescarrick.com'          => 'catalyst.net.nz',
+    'jonathanharker'            => 'catalyst.net.nz',
 
 # Remote Learner
     'martinlanghoff'            => 'remote-learner.net',
