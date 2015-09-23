@@ -1,0 +1,100 @@
+#!/usr/bin/perl
+
+use strict;
+use Data::Dumper;
+
+my @lines = `git shortlog --summary --numbered --email`;
+my %hosts;
+
+# manual: git shortlog --summary --numbered --email | grep  XYZ
+# then google them to find more details and track who they are
+
+my %map = (
+# Totara
+    'totara.com'                => 'totaralms.com',
+    'skodak'                    => 'totaralms.com',
+    'samhemelryk'               => 'totaralms.com',
+    'skodak.org'                => 'totaralms.com',
+    'sam.hemelryk@gmail.com'    => 'totaralms.com',
+    'jerome'                    => 'totaralms.com',
+
+# Moodle HQ
+    'moodler'                   => 'moodle.org',
+    'moodlerobot'               => 'totara.com',
+    'moodle.com'                => 'moodle.org',
+    'stronk7'                   => 'moodle.org',
+    'mudrd8mz'                  => 'moodle.org',
+       'david.mudrak@gmail.com' => 'moodle.org',
+             'fmcell@gmail.com' => 'moodle.org',
+    'nicols.co.uk'              => 'moodle.org',
+    'jerome'                    => 'moodle.org',
+    'dongsheng'                 => 'moodle.org',
+    'dongsheng@moodle.com'      => 'moodle.org',
+    'imdongsheng@gmail.com'     => 'moodle.org',
+    'mouneyrac.com'             => 'moodle.org', # since left
+
+## Partners
+
+# Catalyst
+    'nigelcunningham.com.au'    => 'catalyst.net.nz',
+    'piers'                     => 'catalyst.net.nz',
+    'danmarsden.com'            => 'catalyst.net.nz',
+    'danmarsden'                => 'catalyst.net.nz',
+    'mattc-catalyst'            => 'catalyst.net.nz',
+
+# Remote Learner
+    'martinlanghoff'            => 'remote-learner.net',
+
+# Mitstek
+    'mits'                      => 'mitstek.com',
+
+## Big universities
+
+# Edith Cowan uni
+    'nicolasconnault'           => 'ecu.edu.au',
+    'nicolasconnault@gmail.com' => 'ecu.edu.au',
+
+# Open Uni
+    'tjhunt'                    => 'open.ac.uk',
+    'sam_marshall'              => 'open.ac.uk',
+
+
+);
+
+my $c = 0;
+foreach my $line (@lines){
+
+    # if ($c++ > 200){ last; }
+
+    $line =~ /(\d+)(.*)/;
+    my $num = $1;
+    my $user = $2;
+    my $company = '?';
+    if ($user =~ /<(.*@(.*))>/){
+        if ($map{$1}){
+            $company = $map{$1};
+        } elsif ($user =~ /gmail|hotmail|yahoo/){
+            $company = $user;
+        } else {
+            $company = $2;
+        }
+    } elsif ($user =~ /<(.*)>/){
+        $company = $1;
+    }
+    my $host = $company;
+    if ($map{$host}){
+        $host = $map{$host};
+    }
+    # print "$num = $user = $host\n";
+    if ($hosts{$host}){
+        $hosts{$host} += $num;
+    } else {
+        $hosts{$host} = $num;
+    }
+}
+
+foreach my $host (sort keys %hosts) {
+    printf "%-8d %s\n", $hosts{$host}, $host;
+}
+
+# print Dumper(%hosts);
