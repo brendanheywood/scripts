@@ -41,6 +41,11 @@
     # Sometimes submodules are only a hash, and not a branch, this shows which ones are broken
     submodule-branches = "submodule foreach --quiet 'echo \"$(git rev-parse --abbrev-ref HEAD)    => $name\"'"
 
+    # This uses the new submodule branch tracking in git 1.8.2 but works in earlier too
+    submodule-trackbranch = "! git submodule foreach --recursive 'branch=\"$(git config -f $toplevel/.gitmodules submodule.$name.branch)\"; git checkout $branch'"
+
+    #   http://stackoverflow.com/questions/1777854/git-submodules-specify-a-branch-tag
+
     # cheat sheet, not really a need for alias:
     #
     # maybe auto detect? status which shows tracing?
