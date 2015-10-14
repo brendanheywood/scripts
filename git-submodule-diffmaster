@@ -1,0 +1,3 @@
+#!/bin/sh
+
+git submodule foreach 'git diff --summary master | head -n 4 || :'
