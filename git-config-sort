@@ -31,14 +31,16 @@ foreach my $line (@lines) {
 }
 $keys{$key} = $data;
 
-
-# print $filename;
-
-# exit;
 open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
 
 foreach my $key (sort keys %keys){
-    print $fh $keys{$key};
+
+    my @lines = split /\n/, $keys{$key};
+    print $key;
+    shift @lines;
+    @lines = sort @lines;
+    print join "\n", @lines;
+    print "\n";
 }
 close $fh;
 
