@@ -36,11 +36,11 @@ open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
 foreach my $key (sort keys %keys){
 
     my @lines = split /\n/, $keys{$key};
-    print $key;
+    print $fh $key;
     shift @lines;
     @lines = sort @lines;
-    print join "\n", @lines;
-    print "\n";
+    print $fh join "\n", @lines;
+    print $fh "\n";
 }
 close $fh;
 
