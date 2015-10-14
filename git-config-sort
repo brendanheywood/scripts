@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Data::Dumper;
+
+if (!$ARGV[0]) {
+    print <<EOF;
+This will sort the keys of a git config file in place.
+ie keep your submodules in a nice order to make them simple to read through.
+
+git config-sort [filename]
+EOF
+    exit;
+}
+
+my $filename = $ARGV[0];
+
+my %keys;
+my @lines = (<>);
+my $key = '';
+my $data = '';
+foreach my $line (@lines) {
+    if ($line =~ /^\[/) {
+        $keys{$key} = $data;
+        $key = $line;
+        $data = $line;
+    } else {
+        $data .= $line;
+    }
+}
+$keys{$key} = $data;
+
+
+# print $filename;
+
+# exit;
+open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
+
+foreach my $key (sort keys %keys){
+    print $fh $keys{$key};
+}
+close $fh;
+
