@@ -12,6 +12,7 @@ my %hosts;
 my %map = (
 # Moodle HQ
     'moodler'                   => 'moodle.org',
+    'martin'                    => 'moodle.org',
     'moodlerobot'               => 'totara.com',
     'moodle.com'                => 'moodle.org',
     'stronk7'                   => 'moodle.org',
@@ -28,17 +29,26 @@ my %map = (
     'damyon.wiese@gmail.com'    => 'moodle.org',
     'talktodan@gmail.com'       => 'moodle.org',
     'poltawski'                 => 'moodle.org',
+    'vyshane'                   => 'moodle.org',
+
+    'toyomoyo'                  => 'moodle.org', # NOT SURE very old < 2.0 commits
+    'koenr'                     => 'moodle.org', # NOT SURE very old < 2.0 commits
+    'defacer'                   => 'moodle.org', # NOT SURE very old < 2.0 commits
+
+    'unoter@gmail.com'          => 'moodle.org', # since left
+    'moodle.org'                => 'moodle.org             Moodle HQ',
 
 ## Partners
 
 # Totara
-    'totara.com'                => 'totaralms.com',
     'skodak'                    => 'totaralms.com',
     'samhemelryk'               => 'totaralms.com',
     'skodak.org'                => 'totaralms.com',
     'sam.hemelryk@gmail.com'    => 'totaralms.com',
     'jerome'                    => 'totaralms.com',
     'simoncoggins@gmail.com'    => 'totaralms.com',
+    'totara.com'                => 'totaralms.com',
+    'totaralms.com'             => 'totaralms.com          Totara HQ',
 
 # Catalyst
     'nigelcunningham.com.au'    => 'catalyst.net.nz',
@@ -49,23 +59,43 @@ my %map = (
     'catalyst-au.net'           => 'catalyst.net.nz',
     'mylescarrick.com'          => 'catalyst.net.nz',
     'jonathanharker'            => 'catalyst.net.nz',
+    'mjollnir_'                 => 'catalyst.net.nz',
+    'catalyst.net.nz'           => 'catalyst.net.nz        Partner NZ',
 
 # Remote Learner
     'martinlanghoff'            => 'remote-learner.net',
+    'remote-learner.net'        => 'remote-learner.net     Partner Canada',
 
 # Mitstek
     'mits'                      => 'mitstek.com',
+    'mitstek.com'               => 'mitstek.com            Partner Japan',
 
 ## Big universities
 
 # Edith Cowan uni
     'nicolasconnault'           => 'ecu.edu.au',
     'nicolasconnault@gmail.com' => 'ecu.edu.au',
+    'ecu.edu.au'                => 'ecu.edu.au             Uni: Edith Cowan',
+
+    'gustav_delius'             => 'york.ac.uk',
+    'york.ac.uk'                => 'york.ac.uk             Uni: York, UK',
+
+
+    'martignoni'                => 'fri-tic.ch',
+    'fri-tic.ch'                => 'fri-tic.ch             Uni: Swiss',
 
 # Open Uni
     'tjhunt'                    => 'open.ac.uk',
     'sam_marshall'              => 'open.ac.uk',
+    'open.ac.uk'                => 'open.ac.uk             Uni: Open Uni UK',
 
+
+    'thepurpleblob'             => 'gla.ac.uk',
+    'gla.ac.uk'                 => 'gla.ac.uk              Uni: Glasgow UK',
+
+# Freelance moodle dev
+    'jamiesensei'               => 'jamiep.org',
+    'jamiep.org'                => 'jamiep.org             Freelance Moodle developer',
 
 );
 
@@ -90,6 +120,12 @@ foreach my $line (@lines){
         $company = $1;
     }
     my $host = $company;
+    if ($map{$host}){
+        $host = $map{$host};
+    }
+    if ($map{$host}){
+        $host = $map{$host};
+    }
     if ($map{$host}){
         $host = $map{$host};
     }
