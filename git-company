@@ -30,10 +30,14 @@ my %map = (
     'talktodan@gmail.com'       => 'moodle.org',
     'poltawski'                 => 'moodle.org',
     'vyshane'                   => 'moodle.org',
-
+    'ethem'                     => 'moodle.org',
     'toyomoyo'                  => 'moodle.org', # NOT SURE very old < 2.0 commits
     'koenr'                     => 'moodle.org', # NOT SURE very old < 2.0 commits
     'defacer'                   => 'moodle.org', # NOT SURE very old < 2.0 commits
+    'paca70'                    => 'moodle.org',
+    'rkingdon'                  => 'moodle.org',
+    'michaelpenne'              => 'moodle.org',
+    'scyrma'                    => 'moodle.org', # skoda when at moodle hq
 
     'unoter@gmail.com'          => 'moodle.org', # since left
     'moodle.org'                => 'moodle.org             Moodle HQ',
@@ -70,7 +74,14 @@ my %map = (
     'mits'                      => 'mitstek.com',
     'mitstek.com'               => 'mitstek.com            Partner Japan',
 
+# netspot.com.au
+    'netspot.com.au'            => 'netspot.com.au         Partner Aus',
+
 ## Big universities
+
+# Uni
+    'bobopinna'                 => 'uniupo.it',
+    'uniupo.it'                 => 'uniupo.it              Uni: Eastern Piedmont Italy',
 
 # Edith Cowan uni
     'nicolasconnault'           => 'ecu.edu.au',
@@ -84,9 +95,13 @@ my %map = (
     'martignoni'                => 'fri-tic.ch',
     'fri-tic.ch'                => 'fri-tic.ch             Uni: Swiss',
 
+    'gbateson'                  => 'kochi-tech.ac.jp',
+    'kochi-tech.ac.jp'          => 'kochi-tech.ac.jp       Uni: Kochi Japan',
+
 # Open Uni
     'tjhunt'                    => 'open.ac.uk',
     'sam_marshall'              => 'open.ac.uk',
+    'nfreear'                   => 'open.ac.uk',
     'open.ac.uk'                => 'open.ac.uk             Uni: Open Uni UK',
 
 
@@ -95,7 +110,12 @@ my %map = (
 
 # Freelance moodle dev
     'jamiesensei'               => 'jamiep.org',
-    'jamiep.org'                => 'jamiep.org             Freelance Moodle developer',
+    'jamiep.org'                => 'jamiep.org             Freelance Moodle dev',
+
+    'urs_hunkler'               => 'unodo.de',
+    'unodo.de'                  => 'unodo.de               Freelance Moodle dev',
+
+    'luns.net.uk'               => 'luns.net.uk            Dev',
 
 );
 
