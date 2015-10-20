@@ -6,8 +6,15 @@ use Data::Dumper;
 my @lines = `git shortlog --summary --numbered --email`;
 my %hosts;
 
-# manual: git shortlog --summary --numbered --email | grep  XYZ
+# This is a rough script that maps users to companies so we
+# can get a rough ranking of contributions.
+#
+# To make more metadata:
+# manual:  git log --author=XYZ
+# then find commit in their name and look them up in the tracker
 # then google them to find more details and track who they are
+# and add it to the array below
+#
 
 my %map = (
 # Moodle HQ
