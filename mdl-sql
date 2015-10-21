@@ -37,5 +37,15 @@ if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
 		    ."psql -h $db{host} $db{name} $db{user}";
 }
 # print "Command: $command\n";
-system ($command) == 0  || die;
+if(system ($command) != 0){
+    print "\n-----------------------------------------\n";
+    print "DOH! It looks like your DB doesn't exist! Want to create it?:\n";
+    if ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
+        print "sudo -u postgres createuser -SDRP $db{user}\n";
+        print "\n";
+        print "enter password and then run:\n";
+        print "sudo -u postgres createdb -O $db{user} -E UTF8 $db{name}\n";
+        print "\n";
+    }
+}
 
