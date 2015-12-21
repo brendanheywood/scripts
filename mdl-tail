@@ -13,16 +13,27 @@ my $cwd = getcwd;
 my $apache =  `grep '$cwd' /etc/apache2/sites-enabled/* /etc/httpd/conf/*`;
 $apache =~ /^(.*):/;
 
-my $conf = $1;
-my $log =  `grep ErrorLog $conf`;
+# If apache is setup using the VHost template we need more magic
+if (!$apache){
+    $cwd =~ /.*\/(.*?)$/;
+    $cwd = $1;
+    my $logfile = "/var/log/apache2/$cwd/error.log";
+    if (-e $logfile) {
+        system("tail -f $logfile | sed 's/\\\\n/\\n/g' ");
+    }
+} else {
 
-$log =~ /ErrorLog(.*)$/;
-$log = $1;
-$log =~ s/\$\{APACHE_LOG_DIR\}/\/var\/log\/apache2/;
+    my $conf = $1;
+    my $log =  `grep ErrorLog $conf`;
 
-print "$log \n";
+    $log =~ /ErrorLog(.*)$/;
+    $log = $1;
+    $log =~ s/\$\{APACHE_LOG_DIR\}/\/var\/log\/apache2/;
 
-#system("tail -f $log | sed 's/\\\\n/\\n/g' | sed 's/<\\/li>/<\\/li>\\n/g' ");
-system("tail -f $log | sed 's/\\\\n/\\n/g' ");
-#system("tail -f $log  ");
+    print "$log \n";
+
+    #system("tail -f $log | sed 's/\\\\n/\\n/g' | sed 's/<\\/li>/<\\/li>\\n/g' ");
+    system("tail -f $log | sed 's/\\\\n/\\n/g' ");
+    #system("tail -f $log  ");
+}
 
