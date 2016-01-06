@@ -81,6 +81,7 @@
 
 [push]
 	default = current
+	recurseSubmodules = check
 
 [pull]
 	default = current
