@@ -12,13 +12,16 @@ my @subs = `git config --file .gitmodules --list | grep '.url'`;
 
 foreach my $sub (@subs) {
 
-    $sub =~ /^submodule.(.*)\.url(-?)(.*)=(.*)$/;
+    $sub =~ /^submodule.(.*)\.url(\-(.+))?=(.*)$/;
 
     my $path = $1;
     my $dash = $2;
     my $name = $3;
     my $url = $4;
 
+    if ($path eq '') {
+        next;
+    }
 
     # `cd $path; git config --unset-all remote..url  ; `;
     if (!$name){
