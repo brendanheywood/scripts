@@ -44,11 +44,15 @@ function e($d, $t = false){
         $i = 0;
         $len = 0;
         foreach($trace as $node) {
-            $part = "    #$i ".$node['file'] ."(" .$node['line']."): ";
+            $file = empty($node['file']) ? 'unkown' : $node['file'];
+            $line = empty($node['line']) ? '???' : $node['line'];
+            $part = "    #$i $file ($line): ";
             $len = max($len, strlen($part));
         }
         foreach($trace as $node) {
-            $stack .= sprintf("%-".$len."s", "    #$i ".$node['file'] .":" .$node['line']." ");
+            $file = empty($node['file']) ? 'unkown' : $node['file'];
+            $line = empty($node['line']) ? '???' : $node['line'];
+            $stack .= sprintf("%-".$len."s", "    #$i $file:$line ");
             if(isset($node['class'])) {
                 $stack .= $node['class'] . "->";
             }
