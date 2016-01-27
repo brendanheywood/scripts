@@ -2,6 +2,7 @@
 alias gt=git
 alias gut=git
 alias got=git
+alias mdl-data='. mdl-data-real'
 
 #
 #PS1='${debian_chroot:+($debian_chroot)}'
@@ -25,16 +26,19 @@ PS1="$PS1\w"
 # color reset
 PS1="$PS1\[\033[00m\] "
 
-# git prompt
-export GIT_PS1_SHOWDIRTYSTATE=1
-export GIT_PS1_SHOWCOLORHINTS=1
-. ~/scripts/git-prompt.sh
+# git prompt (but waaay too slow in some repo's :(
+# export GIT_PS1_SHOWDIRTYSTATE=1
+# export GIT_PS1_SHOWCOLORHINTS=1
+# . ~/scripts/git-prompt.sh
 # This uses ' quotes not " as it's exectued at prompt-time, not source-time
-GITP='$(__git_ps1 "(%s)")'
-PS1=$PS1$GITP
+# GITP='$(__git_ps1 "(%s)")'
+# PS1=$PS1$GITP
 
 # $ prompt
 PS1="$PS1\$ "
+
+
+# export GIT_EDITOR="git-editor"
 
 
 alias l='ls -CFa'
@@ -68,9 +72,9 @@ export LESS="-riMSx4 -FX --shift .1"
 #
 
 # If a command you run returns a fail, it isn't available when you press 'up' which is real pain
-# in the arse when you are re-running things consstantly that fail, like a uni test. This fixes
+# in the arse when you are re-running things consstantly that fail, like a unit test. This fixes
 # that so all commands go into the history
-HISTCONTROL=ignoreboth
+# HISTCONTROL=ignoreboth
 
 # This is pure gold! (actually I thought it was, but it turns out to fairly impractical and I keep on
 # accidentally cd'ing to some random place, or worse I tab auto complete when I know there is a single
