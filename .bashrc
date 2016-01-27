@@ -2,7 +2,8 @@
 alias gt=git
 alias gut=git
 alias got=git
-alias mdl-data='. mdl-data-real'
+alias mdl-data='. real-mdl-data'
+alias mdl-code='. real-mdl-code'
 
 #
 #PS1='${debian_chroot:+($debian_chroot)}'
