@@ -72,11 +72,9 @@ function t($data) {
         }
 
         foreach ($row as $key => $val) {
-            foreach ($row as $key => $val) {
                 printf("| %{$width[$key]}s ", $val);
-            }
-            print "|\n";
         }
+        print "|\n";
     }
 }
 
