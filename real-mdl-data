@@ -12,10 +12,20 @@ then
     path=$(grep -Po '(?<=CFG->dataroot\s=\s.).*(?=.;)' $file)
     if [ "$path" ]
     then
-        echo "Going to $path"
-        cd $path
+        if [ -d "$path" ]
+        then
+            echo "Going to $path"
+            cd $path
+        else
+            echo "Path doesn't exist $path"
+            echo
+            echo "Make it with:"
+            echo
+            echo "sudo mkdir $path"
+            echo "sudo chown www-data: $path"
+        fi
     else
-        echo "No sitedata found"
+        echo "No sitedata found (must not have whitespace around the = )"
     fi
 else
     echo "config.php file not found"
