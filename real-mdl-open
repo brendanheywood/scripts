@@ -1,0 +1,27 @@
+#!/bin/sh -e
+#
+# This script parses your moodle config.php, finds the sitedata
+# directory and then changes to it. However this can't be run
+# in a sub-script so there is an alias which really runs this.
+#
+
+file="config.php"
+
+if [ -f "$file" ]
+then
+    url=$(grep -Po '(?<=^\$CFG->wwwroot\s=\s.).*(?=.;)' $file)
+    if [ "$url" ]
+    then
+        echo "Going to $url"
+        o $url
+    else
+        echo "No wwwroot found, guessing from dirname"
+        url=$(basename $(pwd))
+        url="http://$url"
+        echo "Going to $url"
+        o $url
+    fi
+else
+    echo "config.php file not found"
+fi
+
