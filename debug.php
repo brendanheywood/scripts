@@ -24,6 +24,60 @@ as this will chain to the existing handler.
 
 */
 
+/**
+ * Prints an array of arrays as a nice ascii table
+ *
+ */
+function t($data) {
+
+    $width = array();
+
+
+    // Do a quick scan to calculate some column widths.
+    $c = 0;
+    foreach ($data as $row) {
+
+        $c++;
+        $row = (array)$row;
+
+        foreach ($row as $key => $val) {
+            if (empty($width[$key])) {
+                $width[$key]= strlen($key);
+            }
+            $len = strlen($val);
+            if ($len > $width[$key]) {
+                $width[$key] = $len;
+            }
+        }
+
+    }
+
+    // Now print it.
+    $c = 0;
+    foreach ($data as $row) {
+
+        if ($c++ == 0) {
+            foreach ($row as $key => $val) {
+                print "+" . str_repeat('-', $width[$key] + 2) ;
+            }
+            print "+\n";
+            foreach ($row as $key => $val) {
+                printf("| %{$width[$key]}s ", $key);
+            }
+            print "|\n";
+            foreach ($row as $key => $val) {
+                print "+" . str_repeat('-', $width[$key] + 2) ;
+            }
+            print "+\n";
+        }
+
+        foreach ($row as $key => $val) {
+                printf("| %{$width[$key]}s ", $val);
+        }
+        print "|\n";
+    }
+}
+
 
 /**
  * A convenience log function
@@ -44,11 +98,15 @@ function e($d, $t = false){
         $i = 0;
         $len = 0;
         foreach($trace as $node) {
-            $part = "    #$i ".$node['file'] ."(" .$node['line']."): ";
+            $file = empty($node['file']) ? 'unkown' : $node['file'];
+            $line = empty($node['line']) ? '???' : $node['line'];
+            $part = "    #$i $file ($line): ";
             $len = max($len, strlen($part));
         }
         foreach($trace as $node) {
-            $stack .= sprintf("%-".$len."s", "    #$i ".$node['file'] .":" .$node['line']." ");
+            $file = empty($node['file']) ? 'unkown' : $node['file'];
+            $line = empty($node['line']) ? '???' : $node['line'];
+            $stack .= sprintf("%-".$len."s", "    #$i $file:$line ");
             if(isset($node['class'])) {
                 $stack .= $node['class'] . "->";
             }

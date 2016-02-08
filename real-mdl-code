@@ -1,0 +1,24 @@
+#!/bin/sh -e
+#
+# This script looks at a moodle sitedata, looks at the muc cache
+# file to find the code path directory and then changes to it.
+# However this can't be run in a sub-script so there is an alias
+# which really runs this.
+#
+
+file="cache/core_component.php"
+
+if [ -f "$file" ]
+then
+    path=$(grep -Po "(?<='admin'\s=>..).*(?=admin)" $file)
+    if [ "$path" ]
+    then
+        echo "Going to $path"
+        cd $path
+    else
+        echo "No code path found"
+    fi
+else
+    echo "$file file not found"
+fi
+

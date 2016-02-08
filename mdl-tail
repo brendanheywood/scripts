@@ -21,7 +21,13 @@ $log = $1;
 $log =~ s/\$\{APACHE_LOG_DIR\}/\/var\/log\/apache2/;
 
 
-if ($log =~ /^|/) {
+# If apache is setup using the VHost template we need more magic
+if (!$apache){
+    $cwd =~ /.*\/(.*?)$/;
+    $cwd = $1;
+    $log = "/var/log/apache2/$cwd/error.log";
+
+} elsif ($log =~ /^|/) {
     # Not a file, is piped to a command lik logger
 
     if ($log =~ /logger/) {

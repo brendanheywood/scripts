@@ -52,7 +52,9 @@
     track-master = branch --set-upstream master  origin/master
 
     # Quickly squash the last two commits
+    squash-heaps = rebase -i HEAD~20
     squash-recent = rebase -i HEAD~5
+    squash-last = rebase -i HEAD~2
 
     config-global = config --global -e
     config-local = config -e
@@ -79,6 +81,7 @@
 
 [push]
 	default = current
+	recurseSubmodules = check
 
 [pull]
 	default = current
