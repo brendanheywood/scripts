@@ -20,9 +20,44 @@ $log =~ /ErrorLog(.*)$/;
 $log = $1;
 $log =~ s/\$\{APACHE_LOG_DIR\}/\/var\/log\/apache2/;
 
-print "$log \n";
 
+if ($log =~ /^|/) {
+    # Not a file, is piped to a command lik logger
+
+    if ($log =~ /logger/) {
+        $log =~ /-p(\S*?)\s/;
+        $facility = $1;
+        $log =~ /-t\s(\S*)\b/;
+        $tag = $1;
+        print "Facility: $facility Tag: $tag\n";
+        if ($facility) {
+            print "Found logger with facility: $facility\n";
+            my $syslogfile = `grep '^$facility -?' /etc/rsyslog.d/*`;
+            if ($syslogfile) {
+                $syslogfile =~ /(.*):.*\-\?(.*)/;
+                my $logfileconf = `grep '$2' $1`;
+                print "Conf: $logfileconf\n";
+                $logfileconf =~ /$2,"(.*)"/;
+                $log = $1;
+                $log =~ s/%syslogtag.*?%/$tag/;
+                print "File: $file \n";
+            } else {
+                print "Can't find matcing rsyslog conf file\n";
+            }
+        } else {
+            print "Found logger but not sure what to do: $log\n";
+        }
+
+    } else {
+        print "Unknown log method: $log\n";
+    }
+
+} else {
+
+
+}
+
+print "Found log file: $log \n";
 #system("tail -f $log | sed 's/\\\\n/\\n/g' | sed 's/<\\/li>/<\\/li>\\n/g' ");
 system("tail -f $log | sed 's/\\\\n/\\n/g' ");
 #system("tail -f $log  ");
-
