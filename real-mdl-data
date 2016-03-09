@@ -9,7 +9,7 @@ file="config.php"
 
 if [ -f "$file" ]
 then
-    path=$(grep -Po '(?<=CFG->dataroot\s=\s.).*(?=.;)' $file)
+    path=$(grep -Po '(CFG->dataroot\s*=\s*'.*';)' $file | grep -Po "(?<=').*(?=')")
     if [ "$path" ]
     then
         if [ -d "$path" ]
