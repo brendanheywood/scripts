@@ -18,12 +18,25 @@ foreach $line (<CONF>){
 		$db{$key} = $val;
 		print "Line: Key '$key' Val '$val' \n";
 	}
+    if ($line =~ /('(dbport)' => (\d*),)/) {
+		$key = $2;
+		$val = $3;
+		$db{$key} = $val;
+		print "Line: Key '$key' Val '$val' \n";
+    }
 }
 close CONF;
 
 print "Login:\n";
 if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
     $command = "mysql -u $db{user} --password='$db{pass}' $db{name}";
+
+} elsif($db{type} eq 'mssql'){
+    # sqsh shell is preferable but couldn't get it to work :(
+    # $command = "sqsh -S$db{host}:$db{dbport} -D$db{name} -U$db{user} -P$db{pass}";
+    $command = "tsql -H $db{host} -p $db{dbport} -D $db{name} -U $db{user} -P $db{pass}";
+    # With tsql enter commands without a ; and on the next line type 'go' to run it
+
 } elsif ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
     $command = ""
             . "export PAGER=\"table-pager\";\n"
@@ -38,6 +51,7 @@ if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
 }
 # print "Command: $command\n";
 if(system ($command) != 0){
+    print "$command";
     print "\n-----------------------------------------\n";
     print "DOH! It looks like your DB doesn't exist! Want to create it?:\n";
     if ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
