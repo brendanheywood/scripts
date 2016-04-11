@@ -11,6 +11,9 @@
 	autocrlf = input
 	compression = 0
 
+    # Speed up on most systems that support mtime
+    untrackedCache = true
+
 [alias]
 
     # Super quick and improved shorthands
@@ -22,6 +25,11 @@
     s = !git status && git log --oneline -n 2
     # s = status
     r = remote -v
+
+    commit-resetdate = commit --amend --reset-author --no-edit
+
+    # delete branch from upstread
+    # git push brendan --delete MDL-53047-forum-anchor
 
     # view all commits on a ascii time line showing merges
     timeline = log --graph --decorate --oneline
@@ -42,7 +50,8 @@
     submodule-branches = "submodule foreach --quiet 'echo \"$(git rev-parse --abbrev-ref HEAD)    => $name\"'"
 
     # This uses the new submodule branch tracking in git 1.8.2 but works in earlier too
-    submodule-trackbranch = "! git submodule foreach --recursive 'branch=\"$(git config -f $toplevel/.gitmodules submodule.$name.branch)\"; git checkout $branch'"
+    submodule-trackbranch = "! git submodule foreach --recursive 'branch=\"$(git config -f $toplevel/.gitmodules submodule.$name.branch)\"; git checkout $branch'; "
+    submodule-setupstream = "! git submodule foreach --recursive 'branch=\"$(git config -f $toplevel/.gitmodules submodule.$name.branch)\"; "
 
     #   http://stackoverflow.com/questions/1777854/git-submodules-specify-a-branch-tag
 
