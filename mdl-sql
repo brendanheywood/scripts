@@ -18,6 +18,12 @@ foreach $line (<CONF>){
 		$db{$key} = $val;
 		print STDERR "Line: Key '$key' Val '$val' \n";
 	}
+	if($line =~ /(^\$CFG->(prefix)\s.*= '(.*?)')/){
+		$key = $2;
+		$val = $3;
+		$db{$key} = $val;
+		print STDERR "Line: Key '$key' Val '$val' \n";
+	}
     if ($line =~ /('(dbport)' => (\d*),)/) {
 		$key = $2;
 		$val = $3;
@@ -51,24 +57,31 @@ if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
     $query = $command . " # TODO"; # TODO
 
 } elsif ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
-    $command = ""
+    $export = ""
             . "export PGPASSWORD=\"$db{pass}\";\n"
             . "export PGPASSWORD=\"$db{pass}\";\n";
 
     if ($action eq 'prompt') {
-        $command .= "export PAGER=\"table-pager\";\n";
-        $command .= "export PSQL_EDITOR='vim +1 +\"set syntax=sql\"';\n";
+        $export .= "export PAGER=\"table-pager\";\n";
+        $export .= "export PSQL_EDITOR='vim +1 +\"set syntax=sql\"';\n";
             # +1 forces cursor onto line 1
             # set the sytax to sql as we don't have a good file extension
     }
 
-    $command .= "psql -h $db{host} $db{name} $db{user}";
+    $base = "psql -h $db{host} $db{name} $db{user}";
 #		    . "sudo -u postgres psql -h $db{host} $db{name} $db{user}";
 		# TODO "psql -h $db{host} $db{name} $db{user} --port=6432";  -- need to auto detect port as well
 
+    $command = $export . $base;
+
     # Or are we running an export?
+    $query = "$export cat $queryfile";
+
+    # Convert moodle sql to raw sql
+    $query .= " | mdl-sql-unclean $db{prefix}";
+
     # See http://stackoverflow.com/questions/1517635/save-pl-pgsql-output-from-postgresql-to-a-csv-file
-    $query = $command . " -q -A -F'\t' -f $queryfile";
+    $query .= " | $base  -q -A -F'\t' -f -";
 
     # This god awefulness is because it's safer to export as tab sep
     # and then properly convert to csv, because psql is stupid as doesn't escape commas.
@@ -83,6 +96,8 @@ EOF
     # Finally couldn't figure out how to remove the stupid (2 rows) and timing
     # while also keeping the header row, so just trim them off
     $query .= " | head -n -2";
+
+
 
 }
 
