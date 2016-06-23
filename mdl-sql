@@ -16,20 +16,31 @@ foreach $line (<CONF>){
 		$key = $2;
 		$val = $3;
 		$db{$key} = $val;
-		print "Line: Key '$key' Val '$val' \n";
+		print STDERR "Line: Key '$key' Val '$val' \n";
 	}
     if ($line =~ /('(dbport)' => (\d*),)/) {
 		$key = $2;
 		$val = $3;
 		$db{$key} = $val;
-		print "Line: Key '$key' Val '$val' \n";
+		print STDERR "Line: Key '$key' Val '$val' \n";
     }
 }
 close CONF;
 
-print "Login:\n";
+if ($ARGV[0]) {
+    $action = 'query';
+    $queryfile = $ARGV[0];
+} else {
+    $action = 'prompt';
+}
+
+print STDERR "Action: $action\n";
+
+print STDERR "Login:\n";
 if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
     $command = "mysql -u $db{user} --password='$db{pass}' $db{name}";
+
+    $query = $command . " # TODO"; # TODO
 
 } elsif($db{type} eq 'mssql'){
     # sqsh shell is preferable but couldn't get it to work :(
@@ -37,29 +48,59 @@ if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
     $command = "tsql -H $db{host} -p $db{dbport} -D $db{name} -U $db{user} -P $db{pass}";
     # With tsql enter commands without a ; and on the next line type 'go' to run it
 
+    $query = $command . " # TODO"; # TODO
+
 } elsif ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
     $command = ""
-            . "export PAGER=\"table-pager\";\n"
             . "export PGPASSWORD=\"$db{pass}\";\n"
-            . "export PSQL_EDITOR='vim +1 +\"set syntax=sql\"';\n"
+            . "export PGPASSWORD=\"$db{pass}\";\n";
+
+    if ($action eq 'prompt') {
+        $command .= "export PAGER=\"table-pager\";\n";
+        $command .= "export PSQL_EDITOR='vim +1 +\"set syntax=sql\"';\n";
             # +1 forces cursor onto line 1
             # set the sytax to sql as we don't have a good file extension
-            . "export PGPASSWORD=\"$db{pass}\";\n"
+    }
+
+    $command .= "psql -h $db{host} $db{name} $db{user}";
 #		    . "sudo -u postgres psql -h $db{host} $db{name} $db{user}";
 		# TODO "psql -h $db{host} $db{name} $db{user} --port=6432";  -- need to auto detect port as well
-		    ."psql -h $db{host} $db{name} $db{user}";
+
+    # Or are we running an export?
+    # See http://stackoverflow.com/questions/1517635/save-pl-pgsql-output-from-postgresql-to-a-csv-file
+    $query = $command . " -q -A -F'\t' -f $queryfile";
+
+    # This god awefulness is because it's safer to export as tab sep
+    # and then properly convert to csv, because psql is stupid as doesn't escape commas.
+    # See http://stackoverflow.com/questions/2535255/fastest-way-convert-tab-delimited-file-to-csv-in-linux
+    $query .= <<EOF;
+ | sed -e 's/"/\\\\"/g' -e 's/\t/","/g' -e 's/^/"/' -e 's/\$/"/'
+EOF
+
+    # Gotta be careful to perl escape the command
+    chomp($query);
+
+    # Finally couldn't figure out how to remove the stupid (2 rows) and timing
+    # while also keeping the header row, so just trim them off
+    $query .= " | head -n -2";
+
 }
-# print "Command: $command\n";
+
+if ($action eq 'query') {
+    $command = $query;
+}
+print STDERR "Command: $command\n";
+
 if(system ($command) != 0){
-    print "$command";
-    print "\n-----------------------------------------\n";
-    print "DOH! It looks like your DB doesn't exist! Want to create it?:\n";
+    print STDERR "$command";
+    print STDERR "\n-----------------------------------------\n";
+    print STDERR "DOH! It looks like your DB doesn't exist! Want to create it?:\n";
     if ($db{type} eq 'postgres7' || $db{type} eq 'pgsql'){
-        print "sudo -u postgres createuser -SDRP $db{user}\n";
-        print "\n";
-        print "enter password and then run:\n";
-        print "sudo -u postgres createdb -O $db{user} -E UTF8 $db{name}\n";
-        print "\n";
+        print STDERR "sudo -u postgres createuser -SDRP $db{user}\n";
+        print STDERR "\n";
+        print STDERR "enter password and then run:\n";
+        print STDERR "sudo -u postgres createdb -O $db{user} -E UTF8 $db{name}\n";
+        print STDERR "\n";
     }
 }
 
