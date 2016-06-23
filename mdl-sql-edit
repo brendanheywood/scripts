@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+#
+# My custom PSQL_EDITOR script with a sprinkling of magic
+#
+# This wraps vim so we can mess with the sql file
+# before and after editing, in particular it formats
+# the sql into 'moodle sql' instead of raw sql
+#
+
+$prefix = $ARGV[0];
+$file = $ARGV[1];
+
+$command = "cat $file | mdl-sql-clean $prefix > $file.clean";
+system ($command);
+
+# Then edit as normal in vim
+$command = "vim +1 +\"set syntax=sql\" $file.clean ";
+system ($command);
+
+$command = "cat $file.clean | mdl-sql-unclean $prefix > $file";
+system ($command);
+
+$command = "rm $file.clean";
+system ($command);
+
