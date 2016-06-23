@@ -1,10 +1,20 @@
 #!/usr/bin/perl
-# Given argo is the db prefix convert between
+# Given arg0 is the db prefix convert between
 # moodle sql and raw sql
+# Does some other minor prettyifying
 
 $prefix = $ARGV[0];
 
 while (<STDIN>) {
+
+    # Convert table refs
     $_ =~ s/$prefix(\w+)/\{$1\}/g;
+
+    # UPPER CASE keywords
+    $_ =~ s/\b(select|from|where|and|or|join|limit|group|by|as)\b/uc($1)/ge;
+
+    # Make sure all columns are on a new line
+    $_ =~ s/(\w),(\w)/$1,\n        $2/g;
+
     print $_;
 }

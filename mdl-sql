@@ -63,7 +63,7 @@ if($db{type} eq 'mysql' or $db{type} eq 'mysqli'){
 
     if ($action eq 'prompt') {
         $export .= "export PAGER=\"table-pager\";\n";
-        $export .= "export PSQL_EDITOR='vim +1 +\"set syntax=sql\"';\n";
+        $export .= "export PSQL_EDITOR='mdl-sql-edit $db{prefix}';\n";
             # +1 forces cursor onto line 1
             # set the sytax to sql as we don't have a good file extension
     }
