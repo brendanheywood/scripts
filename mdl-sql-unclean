@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+# Given argo is the db prefix convert between
+# moodle sql and raw sql
+
+$prefix = $ARGV[0];
+
+while (<STDIN>) {
+    $_ =~ s/\{(\w+)\}/$prefix$1/g;
+    print $_;
+}
