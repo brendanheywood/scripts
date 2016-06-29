@@ -25,15 +25,10 @@
 -- Show timing data for every query
 \timing
 
-
-\set format=unaligned
+-- \set format=unaligned
 
 -- \pset columns 1
 
 -- Always use the pager
 \set pager always
-
--- TODO Need to make a custom wrapper for this that handles
--- mdl_ prefix mapping
--- \setenv PSQL_EDITOR
 
