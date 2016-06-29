@@ -132,6 +132,10 @@ let g:multi_cursor_quit_key='<Esc>'
 
 
 
+" This is for nice css colors
+Bundle 'ap/vim-css-color'
+
+
 " Moodle ctags:
 " ctags -R --languages=php --exclude="CVS" --php-kinds=f --regex-PHP='/abstract class ([^ ]*)/\1/c/' --regex-PHP='/interface ([^ ]*)/\1/c/' --regex-PHP='/(public |static |abstract |protected |private )+function ([^ (]*)/\2/f/'
 
@@ -174,6 +178,10 @@ set tabstop=4
 set softtabstop=4
 set expandtab
 
+
+" This means that after you paste, the buffer still contains the same
+" thing instead of what you just copied over
+vmap p "_dP
 
 " Show searches as you type them. Can make things slower :(
 set incsearch
