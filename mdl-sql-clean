@@ -15,6 +15,7 @@ while (<STDIN>) {
 
     # Make sure all columns are on a new line
     $_ =~ s/(\w),(\w)/$1,\n        $2/g;
+    $_ =~ s/(\w),(\*)/$1,\n        $2/g;
 
     print $_;
 }
