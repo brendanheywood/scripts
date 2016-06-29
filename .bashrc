@@ -61,6 +61,8 @@ alias ssh='~/scripts/ssh'
 
 # I always seem to type this!
 alias cd..='cd ..'
+alias cd...='cd ../..'
+alias cd....='cd ../../..'
 
 export LESS="-riMSx4 -FX --shift .1"
 # -r  show raw control chars (so colors work)
