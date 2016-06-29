@@ -9,7 +9,7 @@ file="config.php"
 
 if [ -f "$file" ]
 then
-    url=$(grep -Po '(?<=^\$CFG->wwwroot\s=\s.).*(?=.;)' $file)
+    path=$(grep -Po '(CFG->wwwroot\s*=\s*'.*';)' $file | grep -Po "(?<=').*(?=')")
     if [ "$url" ]
     then
         echo "Going to $url"
