@@ -1,8 +1,18 @@
 # This requires using apache mod_macro
 #
+# 1) Copy or symink this file into:
+# /etc/apache2/sites-enabled/apache-all-moodles
+#
+# 2) Install the apache macro module:
+#
 # sudo apt-get install libapache2-mod-macro
 # sudo a2enmod macro
 # sudo service apache restart
+#
+# 3) As needed add more records at the bottom which use the macro
+#    It will winge about the missing log directory so go make that
+#
+# 4) Update your /etc/hosts file if not using some dns magic
 #
 <Macro MoodleHost $host>
     <VirtualHost *:80>
