@@ -114,6 +114,9 @@ au BufNewFile,BufRead *.css set filetype=less
 " make mysql config files use .ini syntax
 au bufreadpost *.conf,*.cnf,*.tksrc set filetype=dosini
 
+" .conf is used for both apache and mysql
+au bufreadpost /etc/apache2/*.conf set filetype=apache
+
 " make psql config files use .sql syntax
 au bufreadpost *.psqlrc set filetype=sql
 
@@ -161,6 +164,11 @@ set viminfo='10,\"1000,:20,%,n~/.viminfo
 
 " Don't convert tabs to space when in a Makefile
 :autocmd FileType make set noexpandtab
+
+
+" This default color scheme should work in most places
+" and is closest to what feels normal for me
+:colorscheme peachpuff
 
 
 " Show line numbers
