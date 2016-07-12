@@ -140,10 +140,16 @@ Bundle 'ap/vim-css-color'
 " ctags -R --languages=php --exclude="CVS" --php-kinds=f --regex-PHP='/abstract class ([^ ]*)/\1/c/' --regex-PHP='/interface ([^ ]*)/\1/c/' --regex-PHP='/(public |static |abstract |protected |private )+function ([^ (]*)/\2/f/'
 
 
+" Turn on http://vim.wikia.com/wiki/Omni_completion
+filetype plugin on
+set omnifunc=syntaxcomplete#Complete
 
 " This is for IDE like popup auto complete
 " crap need newer ubuntu first :(
 " Bundle 'Valloric/YouCompleteMe'
+
+" Auto complete syntax goodies for php, depends on youcompleteme and still doesn't work :(
+"Plugin 'shawncplus/phpcomplete.vim'
 
 " End of bundle stuff
 filetype on
