@@ -36,9 +36,6 @@ let g:airline#extensions#tabline#fnamemod = ':t'
 " This sets 256 colours support needed for airline
 set t_Co=256
 
-" This makes the git +/- columnonthe left black background
-highlight clear SignColumn
-
 " This is for block code commenting / uncommenting, select text then press Ctrl + // to toggle
 Bundle 'tomtom/tcomment_vim'
 " TODO One minor issue with above is that I want it to retain the selection afterwards, this fixes that:
@@ -169,6 +166,9 @@ set viminfo='10,\"1000,:20,%,n~/.viminfo
 " This default color scheme should work in most places
 " and is closest to what feels normal for me
 :colorscheme peachpuff
+
+" This makes the git +/- columnonthe left black background
+highlight SignColumn ctermbg=black
 
 
 " Show line numbers
