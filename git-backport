@@ -1,0 +1,69 @@
+#!/usr/bin/perl
+#
+# This backports work on a branch off master into
+# earlier stable branches of moodle.
+
+use strict;
+
+if (!$ARGV[0]) {
+
+    print "git backport name-of-feature-off-master MOODLE_29_STABLE [more branches]\n";
+    exit;
+
+}
+
+my $feature = shift @ARGV;
+my @onto = @ARGV;
+
+print "Feature = $feature \n";
+`git checkout $feature`;
+
+foreach my $onto (@onto) {
+
+    my $ontobranch = $feature . '-' . $onto;
+    my $cmd;
+    print "Onto $onto $ontobranch \n";
+
+    # Just make sure cherry pick state is clean
+    $cmd = "git cherry-pick --abort";
+    # print "$cmd\n"; `$cmd`;
+    `$cmd`;
+    print "-------------------------------------------------\n";
+
+    # Jump onto master temporarily
+    $cmd ="git checkout master";
+    print "$cmd\n"; `$cmd`;
+    print "-------------------------------------------------\n";
+
+    # Remove the backport branch if it exists
+    $cmd ="git branch -D $ontobranch";
+    print "$cmd\n"; `$cmd`;
+    print "-------------------------------------------------\n";
+
+    # Start a new branch from the stable branch
+    $cmd = "git branch $ontobranch origin/$onto";
+    print "$cmd\n"; `$cmd`;
+    print "-------------------------------------------------\n";
+
+    # Checkout new branch
+    $cmd = "git checkout $ontobranch";
+    print "$cmd\n"; `$cmd`;
+    print "-------------------------------------------------\n";
+
+    # `git pull upstream $ontobranch`;
+
+    # Graft the diff new stuff on feature from master, onto new stable branch
+    # `git rebase --onto $ontobranch $feature origin/$onto `;
+    $cmd = "git cherry-pick master..$feature";
+    print "$cmd\n"; `$cmd`;
+    print "-------------------------------------------------\n";
+
+    $cmd = "git push -f brendan";
+    print "$cmd\n"; `$cmd`;
+
+}
+
+# Now go back to where we started
+
+# `git checkout $branch`;
+
