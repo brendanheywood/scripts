@@ -6,19 +6,25 @@
 # which really runs this.
 #
 
-file="cache/core_component.php"
-
-if [ -f "$file" ]
+if [ -f "config.php" ]
 then
-    path=$(grep -Po "(?<='admin'\s=>..).*(?=admin)" $file)
-    if [ "$path" ]
-    then
-        echo "Going to $path"
-        cd $path
-    else
-        echo "No code path found"
-    fi
+    echo "Already in code"
 else
-    echo "$file file not found"
+
+    file="cache/core_component.php"
+
+    if [ -f "$file" ]
+    then
+        path=$(grep -Po "(?<='admin'\s=>..).*(?=admin)" $file)
+        if [ "$path" ]
+        then
+            echo "Going to $path"
+            cd $path
+        else
+            echo "No code path found"
+        fi
+    else
+        echo "$file file not found"
+    fi
 fi
 

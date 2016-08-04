@@ -1,4 +1,8 @@
 
+# Why!!
+source /etc/bash_completion
+
+
 alias gt=git
 alias gut=git
 alias got=git

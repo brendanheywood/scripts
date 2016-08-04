@@ -36,9 +36,6 @@ let g:airline#extensions#tabline#fnamemod = ':t'
 " This sets 256 colours support needed for airline
 set t_Co=256
 
-" This makes the git +/- columnonthe left black background
-highlight clear SignColumn
-
 " This is for block code commenting / uncommenting, select text then press Ctrl + // to toggle
 Bundle 'tomtom/tcomment_vim'
 " TODO One minor issue with above is that I want it to retain the selection afterwards, this fixes that:
@@ -114,6 +111,9 @@ au BufNewFile,BufRead *.css set filetype=less
 " make mysql config files use .ini syntax
 au bufreadpost *.conf,*.cnf,*.tksrc set filetype=dosini
 
+" .conf is used for both apache and mysql
+au bufreadpost /etc/apache2/*.conf set filetype=apache
+
 " make psql config files use .sql syntax
 au bufreadpost *.psqlrc set filetype=sql
 
@@ -167,6 +167,14 @@ set viminfo='10,\"1000,:20,%,n~/.viminfo
 
 " Don't convert tabs to space when in a Makefile
 :autocmd FileType make set noexpandtab
+
+
+" This default color scheme should work in most places
+" and is closest to what feels normal for me
+:colorscheme peachpuff
+
+" This makes the git +/- columnonthe left black background
+highlight SignColumn ctermbg=black
 
 
 " Show line numbers
