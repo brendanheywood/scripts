@@ -35,6 +35,11 @@ foreach my $onto (@onto) {
     print "$cmd\n"; `$cmd`;
     print "-------------------------------------------------\n";
 
+    # Make sure it's up to date
+    $cmd ="git pull origin";
+    print "$cmd\n"; `$cmd`;
+    print "-------------------------------------------------\n";
+
     # Remove the backport branch if it exists
     $cmd ="git branch -D $ontobranch";
     print "$cmd\n"; `$cmd`;
@@ -61,9 +66,13 @@ foreach my $onto (@onto) {
     $cmd = "git push -f brendan";
     print "$cmd\n"; `$cmd`;
 
+    print "\n\nDiff url https://github.com/moodle/moodle/compare/$onto...brendanheywood:$ontobranch\n\n"
 }
 
 # Now go back to where we started
+my $cmd = "git checkout $feature";
+print "$cmd\n"; `$cmd`;
+print "-------------------------------------------------\n";
 
 # `git checkout $branch`;
 
