@@ -143,6 +143,8 @@ $old_error_handler = null;
 
 function UberErrorHandler($type, $message='', $file='unknownfile', $line=0)
 {
+    if (PHPUNIT_TEST) { return; }
+
     $_ERRORS = Array(
         0x0001 => 'E_ERROR',
         0x0002 => 'E_WARNING',
@@ -186,7 +188,9 @@ $old_exception_handler = null;
 function UberExceptionHandler($ex) {
 
     global $old_exception_handler;
-    error_log (sprintf('UberExceptionHandler: %s', $_SERVER['REQUEST_URI']));
+    if (!PHPUNIT_TEST) {
+        error_log (sprintf('UberExceptionHandler: %s', $_SERVER['REQUEST_URI']));
+    }
 
     // Now call the old error handler. Moodle registers it's own default handler which does
     // stuff like closing DB transactions, so we just want to augment that instead of replace it
