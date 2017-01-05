@@ -143,7 +143,7 @@ $old_error_handler = null;
 
 function UberErrorHandler($type, $message='', $file='unknownfile', $line=0)
 {
-    if (PHPUNIT_TEST) { return; }
+    if (defined('PHPUNIT_TEST')) { return; }
 
     $_ERRORS = Array(
         0x0001 => 'E_ERROR',
@@ -211,4 +211,38 @@ function sql($sql){
 
 }
 
+/*
+ *
+ */
+function dump_as_curl(){
+
+    $cmd = "CURL command to reproduce:\n\ncurl ";
+
+    $cmd .= "'" . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . "'";
+;
+
+    $cmd .= " \\n";
+    $cmd .= " --insecure \\n";
+    $cmd .= " --verbose \\n";
+
+    $headers = getallheaders();
+    foreach ($headers as $key => $val) {
+        $cmd .= " --header '$key: $val' \\n";
+    }
+
+    $postdata = file_get_contents("php://input");
+
+    if (!empty($postdata)) {
+        $cmd .= " --data-binary '$postdata' \\n";
+    }
+
+    $cmd .= "\n";
+    $cmd .= "\n";
+    $cmd .= "\n";
+
+    error_log($cmd);
+
+// curl 'https://moodle.prod.local/lib/ajax/service.php?sesskey=RMV1nwHHip' -H 'Cookie: rocketchatscreenshare=chrome; MoodleSession=cgjtq6q42mkdckm6qm1p6bla12; MOODLEID1_=%2596K%2589%25A37mY%251F%25E1%25F8-' -H 'Origin: https://moodle.prod.local' -H 'Accept-Encoding: gzip, deflate, br' -H 'Accept-Language: en-US,en;q=0.8,de;q=0.6,ko;q=0.4' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36' -H 'Content-Type: application/json' -H 'Accept: application/json, text/javascript, */*; q=0.01' -H 'Referer: https://moodle.prod.local/admin/index.php?cache=1' -H 'X-Requested-With: XMLHttpRequest' -H 'Connection: keep-alive' --data-binary '[{"index":0,"methodname":"core_fetch_notifications","args":{"contextid":1}}]' --compressed --insecure
+
+}
 
