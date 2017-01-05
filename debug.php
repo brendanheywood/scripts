@@ -211,33 +211,41 @@ function sql($sql){
 
 }
 
-/*
+/**
+ * Dumps the current http request as a curl command.
  *
+ * If you call this on any page, eg at the start on config.php then it will
+ * dump to the error log a cli curl command which will exactly reproduce
+ * this same request. Great for watching and debugging a rest / xml-rpc call
+ * or generally seeing what is coming in over the wire when you don't have
+ * visibility at the network level.
+ *
+ * Inspired by the 'copy as cURL' in chrome dev tools.
  */
-function dump_as_curl(){
+function dump_as_curl($eol = false){
+
+    $eol = $eol ? "\\n" : '';
 
     $cmd = "CURL command to reproduce:\n\ncurl ";
 
     $cmd .= "'" . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . "'";
 ;
 
-    $cmd .= " \\n";
-    $cmd .= " --insecure \\n";
-    $cmd .= " --verbose \\n";
+    $cmd .= $eol;
+    $cmd .= " --insecure $eol";
+    $cmd .= " --verbose $eol";
 
     $headers = getallheaders();
     foreach ($headers as $key => $val) {
-        $cmd .= " --header '$key: $val' \\n";
+        $cmd .= " --header '$key: $val' $eol";
     }
 
     $postdata = file_get_contents("php://input");
 
     if (!empty($postdata)) {
-        $cmd .= " --data-binary '$postdata' \\n";
+        $cmd .= " --data-binary '$postdata' $eol";
     }
 
-    $cmd .= "\n";
-    $cmd .= "\n";
     $cmd .= "\n";
 
     error_log($cmd);
