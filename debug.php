@@ -221,19 +221,47 @@ function sql($sql){
  * visibility at the network level.
  *
  * Inspired by the 'copy as cURL' in chrome dev tools.
+ *
+ * Gotchas: Depending on logs are processed, ie by syslog or apache, the
+ * output may be encoded differently. For example a \ may be escaped into a
+ * \\ which means if you are tailing the logs you may need to run it through
+ * sed to get it back to a runnable command. This mostly applies to POST date.
+ *
  */
 function dump_as_curl($eol = false){
 
     $eol = $eol ? "\\n" : '';
 
-    $cmd = "CURL command to reproduce:\n\ncurl ";
+    $cmd = "CURL command to reproduce:\n\ncurl $eol";
 
-    $cmd .= "'" . (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . "'";
-;
+    $cmd .= " '";
+    $cmd .= 'http';
 
+    // TODO detect X-Forwarded https
+    if ( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ) {
+        $cmd .= 's';
+    }
+    $cmd .= '://';
+    $cmd .= $_SERVER['HTTP_HOST'];
+    $cmd .= $_SERVER['REQUEST_URI'];
+    $cmd .= "' ";
     $cmd .= $eol;
+
     $cmd .= " --insecure $eol";
     $cmd .= " --verbose $eol";
+    // TODO --compressed ?
+
+    $method = $_SERVER['REQUEST_METHOD'];
+    switch ($method) {
+        case 'HEAD':
+            $cmd .= " --head $eol";
+            break;
+        case 'GET':
+            $cmd .= '';
+            break;
+        default:
+            $cmd .= " --request $method $eol";
+    }
 
     $headers = getallheaders();
     foreach ($headers as $key => $val) {
@@ -243,6 +271,7 @@ function dump_as_curl($eol = false){
     $postdata = file_get_contents("php://input");
 
     if (!empty($postdata)) {
+        $postdata = str_replace("'", "'" . "\\" . "'", $postdata); // Escape ' for use in shell
         $cmd .= " --data-binary '$postdata' $eol";
     }
 
