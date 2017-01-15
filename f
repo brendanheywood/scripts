@@ -34,8 +34,19 @@ if (!$files){
 }
 my $grep = join(' ', reverse @grep);
 
-my $cmd = "grep '$grep' -r --color=always -n -C3 $files | less -R";
+my $cmd = "grep '$grep'";
+$cmd .= " -r";  # recursive
+$cmd .= " -n";  # show line numbers
+$cmd .= " -F";  # = fixed string (ie not regex)
+$cmd .= " -C3"; # 3 lines of context
+$cmd .= " --color=always"; #
+$cmd .= " $files"; #3
+$cmd .= " | less -R"; # -R = retain control chars (ie colors)
+
 # my $cmd = "grep \"$grep\" -r -n -C3 $files | f-opener \"$grep\" ";
-# print "$cmd\n";
+
+
+
+print "$cmd\n";
 system($cmd);
 
