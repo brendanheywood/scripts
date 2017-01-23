@@ -5,6 +5,30 @@ use strict;
 use Data::Dumper;
 use List::Util qw[min max];
 
+# This turns a set of csv formated tuples into a formated table
+# The table is formatted similar to how sql tools export a
+# table of results, so if it is a large resultset you can
+# further pipe it into the table-page
+#
+# eg input
+#
+# foo,bar,1
+# foo,tie,2
+# bar,tie,7
+#
+# Output:
+#
+# -   | bar | tie
+# ----+-----+-----
+# foo |   1 |   2
+# bar |     |   7
+#
+# Some crazy recipes:
+#
+# This lists all the submodule tracking branches against all the catalyst upstreams
+# ls | grep catalyst.moo | xargs -n1 -I % sh -i -c 'cd %; git submodule foreach --recursive "branch=\$(git config -f \$toplevel/.gitmodules submodule.\$name.branch); echo \"%,\$name,\$branch \"; "; '
+
+
 my %data; # Contains an array of hashes of data
 my %cols; # Contains an hash of column names
 my $delim = ','; # option to change
@@ -14,6 +38,10 @@ foreach my $line (<>){
 
     chop $line;
     my ($col, $key, $val) = split $delim, $line;
+
+    $col =~ s/^\s+|\s+$//g;
+    $key =~ s/^\s+|\s+$//g;
+    $val =~ s/^\s+|\s+$//g;
 
     my $length = length($val);
 
