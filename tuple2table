@@ -1,0 +1,72 @@
+#!/usr/bin/perl
+
+use utf8;
+use strict;
+use Data::Dumper;
+use List::Util qw[min max];
+
+my %data; # Contains an array of hashes of data
+my %cols; # Contains an hash of column names
+my $delim = ','; # option to change
+my $col0width = 5;
+
+foreach my $line (<>){
+
+    chop $line;
+    my ($col, $key, $val) = split $delim, $line;
+
+    my $length = length($val);
+
+# print " $val => $length \n";
+
+    if (!$cols{$key}) {
+        $cols{$key} = max($length, length($key));
+    } else {
+        $cols{$key} = max($length, $cols{$key});
+    }
+
+    $col0width = max(length($col), $col0width);
+
+    if (!$data{$col}) {
+        $data{$col} = {};
+    }
+
+    $data{$col}{$key} = $val;
+
+}
+
+
+#print Dumper(\%data);
+# print Dumper(\%cols);
+#print "=========\n";
+
+my @rows = sort keys %data;
+my @cols = sort keys %cols;
+
+# Print header row
+printf " %-$col0width\s ", "Key";
+foreach my $col (@cols){
+    printf (("| %".$cols{$col}."s "), $col);
+}
+print "\n";
+
+
+# Print header line --+---+---
+printf "-%-$col0width\s-", '-' x $col0width;
+foreach my $col (@cols){
+    printf "+-%s-", '-' x $cols{$col};
+}
+print "\n";
+
+# Print data rows
+foreach my $row (@rows){
+
+    printf " %-$col0width\s ", $row;
+    foreach my $col (@cols){
+
+        printf (("| %".$cols{$col}."s "), $data{$row}{$col});
+
+    }
+    print "\n";
+}
+
