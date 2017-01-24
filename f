@@ -41,12 +41,9 @@ $cmd .= " -F";  # = fixed string (ie not regex)
 $cmd .= " -C3"; # 3 lines of context
 $cmd .= " --color=always"; #
 $cmd .= " $files"; #3
+$cmd .= " | cut -c1-200"; # Just ignore matches in compiled css etc
 $cmd .= " | less -R"; # -R = retain control chars (ie colors)
 
-# my $cmd = "grep \"$grep\" -r -n -C3 $files | f-opener \"$grep\" ";
-
-
-
-print "$cmd\n";
+# print "$cmd\n";
 system($cmd);
 
