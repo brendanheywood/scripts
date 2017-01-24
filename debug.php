@@ -194,7 +194,9 @@ function UberExceptionHandler($ex) {
 
     // Now call the old error handler. Moodle registers it's own default handler which does
     // stuff like closing DB transactions, so we just want to augment that instead of replace it
-    call_user_func( $old_exception_handler, $ex);
+    if ($old_exception_handler) {
+        call_user_func( $old_exception_handler, $ex);
+    }
 }
 
 
