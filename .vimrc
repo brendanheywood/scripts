@@ -111,6 +111,11 @@ au BufNewFile,BufRead *.css set filetype=less
 " make mysql config files use .ini syntax
 au bufreadpost *.conf,*.cnf,*.tksrc set filetype=dosini
 
+" git config files
+" Don't convert tabs to spaces
+au bufreadpost *.gitmodules set filetype=gitconfig
+:autocmd FileType gitconfig set noexpandtab
+
 " .conf is used for both apache and mysql
 au bufreadpost /etc/apache2/*.conf set filetype=apache
 
