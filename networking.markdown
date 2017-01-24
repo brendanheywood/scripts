@@ -22,7 +22,11 @@ sudo service networking restart
 
 sudo service network-manager restart
 
-URL not working?
+OR if the network manager icon isn't in the top bar:
+
+ killall nm-applet; nohup nm-applet &
+
+# URL not working?
 
 ## First does it resolve?
 
@@ -39,6 +43,11 @@ If on the VPN, test wether DNS lookup directly against the DNS server fails:
 
 Ip's of dns servers are in vpn settings UI.
 
+
+## dnsmasq custom extra config
+
+/etc/NetworkManager/dnsmasq.d/brendan.conf
+
 Sometimes dnsmasq should be off on certain networks, like in Melbourne office lan:
 
 $ sudo vim /etc/NetworkManager/NetworkManager.conf
@@ -51,9 +60,16 @@ plugins=ifupdown,keyfile
 
 ## If you need to use google to help diagnose the issue temp use google's DNS:
 
+This file is managed by Network manager but hack it temporarily:
+
 vim /etc/resolv.conf
 
  nslookup 8.8.8.8
+
+The real file that NM gives is using is:
+
+/run/NetworkManager/resolv.conf
+
 
 
 ## Ok so DNS resolving isn't working locally
