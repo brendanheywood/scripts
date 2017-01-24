@@ -26,8 +26,8 @@ use List::Util qw[min max];
 # Some crazy recipes:
 #
 # This lists all the submodule tracking branches against all the catalyst upstreams
-# ls | grep catalyst.moo | xargs -n1 -I % sh -i -c 'cd %; git submodule foreach --recursive "branch=\$(git config -f \$toplevel/.gitmodules submodule.\$name.branch); echo \"%,\$name,\$branch \"; "; '
-
+#
+# ls | grep catalyst.moo | xargs -n1 -I % sh -i -c 'cd %; git submodule foreach --recursive "branch=\$(git config -f \$toplevel/.gitmodules submodule.\$name.branch); echo \"\$name,%,\$branch \"; "; ' 2>&1 | grep -v Enter | grep -v '/var/www' | sed 's/catalyst\.moodle\./MDL/g' | sed 's/.local//g' | tuple2table
 
 my %data; # Contains an array of hashes of data
 my %cols; # Contains an hash of column names
