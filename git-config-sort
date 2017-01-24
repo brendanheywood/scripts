@@ -28,7 +28,7 @@ foreach my $line (@lines) {
     }
 
     # Normalise indenting
-    $line =~ s/^\s+/    /g;
+    $line =~ s/^\s+/\t/g;
 
     if ($line =~ /^\[/) {
         $keys{$key} = $data;
