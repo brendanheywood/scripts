@@ -21,6 +21,15 @@ my @lines = (<>);
 my $key = '';
 my $data = '';
 foreach my $line (@lines) {
+
+    # Ignore blank lines
+    if ($line =~ /^\s+$/) {
+        next;
+    }
+
+    # Normalise indenting
+    $line =~ s/^\s+/    /g;
+
     if ($line =~ /^\[/) {
         $keys{$key} = $data;
         $key = $line;
@@ -36,6 +45,11 @@ open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
 foreach my $key (sort keys %keys){
 
     my @lines = split /\n/, $keys{$key};
+
+    if (!$key) {
+        next;
+    }
+
     print $fh $key;
     shift @lines;
     @lines = sort @lines;
