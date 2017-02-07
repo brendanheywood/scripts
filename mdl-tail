@@ -3,20 +3,58 @@
 # From a moodle dir, auto detect the log file and tail it
 
 use Cwd;
+use Getopt::Long;
+
+my $help;
+my $access;
+my $info = <<EOF;
+
+Auto discover and live tail the moodle logs
+
+Usage:
+
+ /var/www/moodle > mdl-tail
+
+Options:
+
+ -h --help    Show this help
+ -a --access  Tail access instead of error logs
+
+EOF
+
+GetOptions(
+    "help|h"   => \$help,
+    "access|a" => \$access,
+) or die ("Error in cli args: $info");
+
+if ($help) {
+    print $info;
+    die;
+}
+
+my $LogConfig = 'ErrorLog';
+if ($access) {
+    $LogConfig = 'CustomLog';
+}
+
 
 if (!-e 'config.php'){
 	die "Can't find a config.php";
 }
-# find current workig dir
+# Find current workig dir
 my $cwd = getcwd;
 
+# Look in some typical places for site definitions which match
+# the current directory
 my $apache =  `grep '$cwd' /etc/apache2/sites-enabled/* /etc/httpd/conf/*`;
 $apache =~ /^(.*):/;
 
+# If we found some, then grep these for the Apache config for where the
+# error logs hangout
 my $conf = $1;
-my $log =  `grep ErrorLog $conf`;
+my $log =  `grep $LogConfig $conf`;
 
-$log =~ /ErrorLog(.*)$/;
+$log =~ /$LogConfig(.*)$/;
 $log = $1;
 $log =~ s/\$\{APACHE_LOG_DIR\}/\/var\/log\/apache2/;
 
