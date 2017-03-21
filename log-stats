@@ -1,0 +1,5 @@
+#!/bin/sh
+
+
+tail -n 100 $1 | sed  's/[0-9]/x/g' | sort | uniq -c | sort -r
+
