@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
 use strict;
+use Term::ReadKey;
 
 sub usage {
 
@@ -34,14 +35,16 @@ if (!$files){
 }
 my $grep = join(' ', reverse @grep);
 
-my $cmd = "grep '$grep'";
+my $cmd = "grep";
+$cmd .= " --color=always";
 $cmd .= " -r";  # recursive
 $cmd .= " -n";  # show line numbers
 $cmd .= " -F";  # = fixed string (ie not regex)
-$cmd .= " -C3"; # 3 lines of context
-$cmd .= " --color=always"; #
-$cmd .= " $files"; #3
-$cmd .= " | cut -c1-200"; # Just ignore matches in compiled css etc
+$cmd .= " -C9"; # 3 lines of context
+$cmd .= " -- "; # We do this with -- mode so we can search for > < - etc
+$cmd .= " '$grep'";
+$cmd .= " $files";
+$cmd .= " | cut -c1-250"; # Just ignore matches in compiled css etc
 $cmd .= " | less -R"; # -R = retain control chars (ie colors)
 
 # print "$cmd\n";
