@@ -214,6 +214,24 @@ function sql($sql){
 }
 
 /**
+ * Polyfill for nginx based on apache
+ *
+ * Taken from: http://php.net/manual/en/function.getallheaders.php#84262
+ */
+if (!function_exists('getallheaders')) {
+    function getallheaders() {
+        $headers = [];
+        foreach ($_SERVER as $name => $value) {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+            }
+        }
+        return $headers;
+    }
+}
+
+
+/**
  * Dumps the current http request as a curl command.
  *
  * If you call this on any page, eg at the start on config.php then it will
