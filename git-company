@@ -3,8 +3,14 @@
 use strict;
 use Data::Dumper;
 
-my @lines = `git shortlog --summary --numbered --email`;
+#my @lines = `git shortlog --summary --numbered --email`; # all time
+#my @lines = `git shortlog --summary --numbered --email dc61d1bea083`; # since 2018
+my @lines = `git shortlog --summary --numbered --email 448bd578..HEAD`; #
 my %hosts;
+
+# To see just commits find a hash:
+# git log --since=2018-01-01 | tail
+#
 
 # This is a rough script that maps users to companies so we
 # can get a rough ranking of contributions.
@@ -24,8 +30,14 @@ my %map = (
     'moodle.com'                => 'moodle.org',
     'stronk7'                   => 'moodle.org',
     'mudrd8mz'                  => 'moodle.org',
+   'juanleyvadelgado@gmail.com' => 'moodle.org',
+    'carlos.escobedo@gmail.com' => 'moodle.org',
+     'ruslan.kabalin@gmail.com' => 'moodle.org',
        'david.mudrak@gmail.com' => 'moodle.org',
+        'mathewm@hotmail.co.nz' => 'moodle.org',
              'fmcell@gmail.com' => 'moodle.org',
+           'abgreeve@gmail.com' => 'moodle.org',
+               'ryanwyllie.com' => 'moodle.org',
     'nicols.co.uk'              => 'moodle.org',
     'jerome'                    => 'moodle.org',
     'dongsheng'                 => 'moodle.org',
@@ -67,7 +79,8 @@ my %map = (
     'danmarsden.com'            => 'catalyst.net.nz',
     'danmarsden'                => 'catalyst.net.nz',
     'mattc-catalyst'            => 'catalyst.net.nz',
-    'catalyst-au.net'           => 'catalyst.net.nz',
+#    'catalyst-au.net'           => 'catalyst.net.nz',
+    'catalyst-au.net'           => 'catalyst-au.net',
     'mylescarrick.com'          => 'catalyst.net.nz',
     'jonathanharker'            => 'catalyst.net.nz',
     'mjollnir_'                 => 'catalyst.net.nz',
@@ -76,6 +89,12 @@ my %map = (
 # Remote Learner
     'martinlanghoff'            => 'remote-learner.net',
     'remote-learner.net'        => 'remote-learner.net     Partner Canada',
+
+    'synergy-learning.com'      => 'synergy-learning.com   Partner Synergy learning',
+
+    'danielneis@gmail.com'      => 'adapta.online          Partner',
+
+    'Nashtechglobal.com'        => 'nashtechglobal.com',
 
 # Mitstek
     'mits'                      => 'mitstek.com',
@@ -89,6 +108,9 @@ my %map = (
 # Uni
     'bobopinna'                 => 'uniupo.it',
     'uniupo.it'                 => 'uniupo.it              Uni: Eastern Piedmont Italy',
+
+    'peterrolanddias@gmail.com' => 'psc.ac.uk              Uni: Peter Symonds College',
+
 
 # Edith Cowan uni
     'nicolasconnault'           => 'ecu.edu.au',
