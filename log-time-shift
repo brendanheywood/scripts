@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+use utf8;
+use strict;
+use HTTP::Date;
+use POSIX;
+
+# This shifts the timestamp in logfiles back to when the request start vs when it finished
+
+foreach my $line (<>){
+
+  $line =~ /^(.{15})(.*upstream_response_time=)(\d+)(\..*)$/;
+  my $time = str2time($1);
+  my $duration = int($3);
+
+  if ($duration > 0) {
+    my $then = $time - $duration;
+    my $thenstr = POSIX::strftime("%b %d %H:%M:%S", localtime($then));
+    print "$thenstr$2$3$4\n";
+  } else {
+    print $line;
+  }
+
+}
+

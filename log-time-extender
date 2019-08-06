@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+
+use utf8;
+use strict;
+use HTTP::Date;
+use POSIX;
+
+# This parses access logs looking for requests which took longer than a second and duplicates them
+# so that a request which took say 5 seconds would appear 5 times in the log, and have the time
+# stamp backdated to that point in time.
+#
+# This is to make it easier to see patterns of concurrency and real load on the server given
+# that each active request holds open various resources like db connections.
+
+
+foreach my $line (<>){
+
+  $line =~ /^(.{15})(.*upstream_response_time=)(\d+)(\..*)$/;
+  my $time = str2time($1);
+  my $duration = int($3);
+
+#  print "$1 $time --Time $duration\n";
+
+  if ($duration > 0) {
+    for (my $c = $duration; $c>0; $c--) {
+      my $then = $time - $c;
+      my $thenstr = POSIX::strftime("%b %d %H:%M:%S", localtime($then));
+      print "$thenstr$2$3$4\n";
+    }
+  }
+
+  print $line;
+
+}
+
