@@ -1,40 +1,23 @@
 #!/usr/bin/perl
-#
-# This script converts csv with 2 columns into a
-# historgram
+# This script converts csv with 2 columns into a historgram
 #
 # key1,number
 # key1,number
 # key2,number
 # key2,numner
-#
-#
 
-
-# __..~--==##==~--..__
-#
-#  ------[    |    ]-------
-#
-#
 use utf8;
 use strict;
 use POSIX;
 use List::Util qw[min max];
 use Term::ReadKey;
 
-
-# This shifts the timestamp in logfiles back to when the request start vs when it finished
-
-
 my @size = Term::ReadKey::GetTerminalSize STDOUT;
 my $columns = $size[0];
 
 my $leftcols = 15; # Width of left 2 cols
 my $barwidth = $columns - $leftcols;
-
 my $scale = 1;
-
-my %hist;
 
 my $key;                # value of first col
 my $count   = 0;        # how many values we have counted with the same col1
