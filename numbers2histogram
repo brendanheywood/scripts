@@ -1,0 +1,92 @@
+#!/usr/bin/perl
+#
+# This script converts csv with 2 columns into a
+# historgram
+#
+# key1,number
+# key1,number
+# key2,number
+# key2,numner
+#
+#
+
+
+# __..~--==##==~--..__
+#
+#  ------[    |    ]-------
+#
+#
+use utf8;
+use strict;
+use POSIX;
+use List::Util qw[min max];
+use Term::ReadKey;
+
+
+# This shifts the timestamp in logfiles back to when the request start vs when it finished
+
+
+my @size = Term::ReadKey::GetTerminalSize STDOUT;
+my $columns = $size[0];
+
+my $leftcols = 15; # Width of left 2 cols
+my $barwidth = $columns - $leftcols;
+
+my $scale = 1;
+
+my %hist;
+
+my $key;                # value of first col
+my $count   = 0;        # how many values we have counted with the same col1
+my $total   = 0;        # running total of all values
+my $min     = 10000;    #
+my $max     = 0;        #
+my $lastkey = '';       #
+my $v;
+
+foreach my $line (<>){
+    chomp $line;
+    ($key,$v) = split /,/, $line;
+
+    if ($key ne $lastkey) {
+        print draw_hist($scale, $lastkey, $count, $min, $max);
+        $count  = 0;
+        $total  = 0;
+        $max    = 0;
+        $min    = 100000;
+    }
+
+    $min = min($min,$v);
+    $max = max($max,$v);
+    $count++;
+    $total += $v;
+    $lastkey = $key;
+
+}
+print draw_hist($scale, $lastkey, $count, $min, $max);
+
+
+sub draw_hist {
+    my ($scale, $key, $count, $min, $max) = @_;
+    if ($count < 1 or $total == 0){
+        return;
+    }
+    my $avg = sprintf("%.3f", $total / $count);
+
+    $min = floor($min * $scale);
+    $avg = floor($avg * $scale);
+    $max =  ceil($max * $scale);
+
+    my $r = '';
+    $r .= sprintf("%-".$leftcols.'s', "$key,$count,");
+    $r .= sprintf("%5s ", $min);
+    $r .= (" " x $min);
+    $r .= "[";
+    $r .= ("-" x ($avg-$min-1));
+    $r .= "|";
+    $r .= ("-" x ($max-$avg-1));
+    $r .= "] $max";
+    $r .= "\n";
+}
+
+
