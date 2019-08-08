@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+
+
+
+$cmd = 'curl -o /dev/null -w "';
+#$cms .= ' --keepalive-time 20 ';
+$cmd .= '\n DNS lookup:         %{time_namelookup}';
+$cmd .= '\n Initial connection: %{time_connect}';
+$cmd .= '\n SSL:                %{time_appconnect}';
+$cmd .= '\n Waiting (TTFB):     %{time_starttransfer}';
+$cmd .= '\n Content download:   %{time_starttransfer}';
+$cmd .= '\n Total time:         %{time_total}';
+$cmd .= '\n" ';
+$cmd .= $ARGV[0];
+#$cmd .= "\n";
+
+# print $cmd;
+print `$cmd`;
+
