@@ -15,7 +15,7 @@ else
 
     if [ -f "$file" ]
     then
-        path=$(grep -Po "(?<='admin'\s=>..).*(?=admin)" $file)
+        path=$(grep -m 1 -Po "(?<='admin'\s=>..).*(?=admin)" $file)
         if [ "$path" ]
         then
             echo "Going to $path"
