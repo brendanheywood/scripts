@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+#
+# This is a url and moodle specific aware log redactor
+# It's useful to quickly redact access log entries back into
+# a similar shape in order to group / sort by url script without
+# all the noisy params but still letting you see the important bits.
+#
+# test file in tests/access-log
+
+foreach my $line (<>){
+
+    # Removed url paths which are just numbers like /foo/12345/bar => /foo/xxx/bar
+    $line =~ s/(\/)\d+(\/)/$1xxxx$2/g;
+
+    # Remove all file arguments params
+    # eg /foo.php/arguments/bar => /foo.php/filearg
+    $line =~ s/(pluginfile.php\/)(\S+)(\s)/$1filearg$3/g;
+
+    # Remove sesskey
+    $line =~ s/(\?sesskey=)(\S+?)(\&|\s)/$1sesskey$3/;
+    $line =~ s/(\&sesskey=)(\S+?)(\&|\s)/$1sesskey$3/;
+
+    # Remove any params that look like just numbers
+    $line =~ s/(\?\S+?=)(\d+?)(\&|\s)/$1N$3/g;
+    $line =~ s/(\&\S+?=)(\d+)(\&|\s)/$1N$3/g;
+    $line =~ s/(\&\S+?=)(\d+)(\&|\s)/$1N$3/g; # Repeat because capture groups overlap
+
+    # Now be more aggresive and remove all params which we know are often junky
+    @params = ('value', 'pref', 'currentorg', 'eid');
+
+    foreach my $param (@params) {
+        $line =~ s/(\&$param=)(\S+?)(\&|\s)/$1P$3/g;
+    }
+
+    print $line;
+
+}
+

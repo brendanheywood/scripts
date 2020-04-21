@@ -1,0 +1,7 @@
+
+/foo.php?sesskey=12345
+/foo.php?sesskey=12345&bar=fish
+/foo.php?fish=var&sesskey=12345
+/mod/assign/feedback/editpdf/ajax.php?sesskey=0kRoLt6wrgrw&action=loadquicklist&userid=123546&attemptnumber=0&assignmentid=123456
+
+/mod/scorm/prereqs.php?a=123456&scoid=123456&attempt=1&mode=normal&currentorg=Resources_ORG&sesskey=wrhethryjw
