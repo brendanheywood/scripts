@@ -9,12 +9,15 @@
 
 foreach my $line (<>){
 
+    $line =~ s/(php)(\?.*?\s)/$1 /g;
+
     # Removed url paths which are just numbers like /foo/12345/bar => /foo/xxx/bar
     $line =~ s/(\/)\d+(\/)/$1xxxx$2/g;
 
     # Remove all file arguments params
     # eg /foo.php/arguments/bar => /foo.php/filearg
     $line =~ s/(pluginfile.php\/)(\S+)(\s)/$1filearg$3/g;
+    $line =~ s/(draftfile.php\/)(\S+)(\s)/$1filearg$3/g;
 
     # Remove sesskey
     $line =~ s/(\?sesskey=)(\S+?)(\&|\s)/$1sesskey$3/;
@@ -26,7 +29,7 @@ foreach my $line (<>){
     $line =~ s/(\&\S+?=)(\d+)(\&|\s)/$1N$3/g; # Repeat because capture groups overlap
 
     # Now be more aggresive and remove all params which we know are often junky
-    @params = ('value', 'pref', 'currentorg', 'eid');
+    @params = ('value', 'pref', 'currentorg', 'eid', 'post');
 
     foreach my $param (@params) {
         $line =~ s/(\&$param=)(\S+?)(\&|\s)/$1P$3/g;
