@@ -10,6 +10,8 @@ alias mdl-data='. real-mdl-data'
 alias mdl-code='. real-mdl-code'
 alias mdl-open='. real-mdl-open'
 
+alias vf='vim $(fzf)' # fzf fuzzy finder - see https://github.com/junegunn/fzf
+
 #
 #PS1='${debian_chroot:+($debian_chroot)}'
 
@@ -55,7 +57,7 @@ alias grep='grep --color=auto'
 
 export PATH="$PATH:$HOME/scripts/"
 export PATH="$PATH:$HOME/moosh/bin"
-eval "$(/home/brendan/moosh/bin/moosh init -)"
+#eval "$(/home/brendan/moosh/bin/moosh init -)"
 
 export DEBFULLNAME='Brendan Heywood'
 export DEBEMAIL='brendan@catalyst.net.nz'
