@@ -26,6 +26,8 @@
     # s = status
     r = remote -v
 
+	branch-prune-remote = remote prune origin
+
     commit-resetdate = commit --amend --reset-author --no-edit
 
     # delete branch from upstread
