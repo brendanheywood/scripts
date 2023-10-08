@@ -24,9 +24,11 @@
     l = log --name-status
     s = !git status && git log --oneline -n 2
     # s = status
-    r = remote -v
+    r = !"git remote -v | grep fetch | column -t"
 
 	branch-prune-remote = remote prune origin
+
+	branch-delete-merged = !"git branch --merged | grep -vE 'main|master|STABLE|\\*' | xargs -n 1 git branch -d"
 
     commit-resetdate = commit --amend --reset-author --no-edit
 
@@ -63,9 +65,11 @@
     track-master = branch --set-upstream master  origin/master
 
     # Quickly squash the last two commits
-    squash-heaps = rebase -i HEAD~20
+    squash-heaps  = rebase -i HEAD~20
     squash-recent = rebase -i HEAD~5
-    squash-last = rebase -i HEAD~2
+    squash-last3  = rebase -i HEAD~3
+    squash-last   = rebase -i HEAD~2
+	squash-auto   = rebase -i --autosquash master
 
     config-global = config --global -e
     config-local = config -e
