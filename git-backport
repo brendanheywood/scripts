@@ -1,19 +1,22 @@
 #!/usr/bin/perl
 #
-# This backports work on a branch off master into
+# This backports work on a branch off main into
 # earlier stable branches of moodle.
 
 use strict;
 
 if (!$ARGV[0]) {
 
-    print "git backport name-of-feature-off-master MOODLE_29_STABLE [more branches]\n";
+    print "git backport name-of-feature-of-main MOODLE_29_STABLE [more branches]\n";
     exit;
 
 }
 
 my $feature = shift @ARGV;
 my @onto = @ARGV;
+
+my $githubrepo = `git config --get user.github`;
+
 
 print "Feature = $feature \n";
 `git checkout $feature`;
@@ -30,8 +33,8 @@ foreach my $onto (@onto) {
     `$cmd`;
     print "-------------------------------------------------\n";
 
-    # Jump onto master temporarily
-    $cmd ="git checkout master";
+    # Jump onto main temporarily
+    $cmd ="git checkout main";
     print "$cmd\n"; `$cmd`;
     print "-------------------------------------------------\n";
 
@@ -57,16 +60,16 @@ foreach my $onto (@onto) {
 
     # `git pull upstream $ontobranch`;
 
-    # Graft the diff new stuff on feature from master, onto new stable branch
+    # Graft the diff new stuff on feature from main, onto new stable branch
     # `git rebase --onto $ontobranch $feature origin/$onto `;
-    $cmd = "git cherry-pick master..$feature";
+    $cmd = "git cherry-pick main..$feature";
     print "$cmd\n"; `$cmd`;
     print "-------------------------------------------------\n";
 
     $cmd = "git push -f brendan";
     print "$cmd\n"; `$cmd`;
 
-    print "\n\nDiff url https://github.com/moodle/moodle/compare/$onto...brendanheywood:$ontobranch\n\n"
+    print "\n\nDiff url https://github.com/moodle/moodle/compare/$onto...$githubrepo:$ontobranch\n\n"
 }
 
 # Now go back to where we started
