@@ -19,7 +19,7 @@
 
     # Super quick and improved shorthands
     a = add
-    b = branch -vv --sort=committerdate
+    b = !"git branch -vv --sort=committerdate | sed -E 's#MDL-([0-9]+ )#https://moodle.atlassian.net/browse/MDL-\\1#g'"
     c = commit
     d = diff
     l = log --name-status
