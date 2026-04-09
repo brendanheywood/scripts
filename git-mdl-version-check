@@ -1,0 +1,381 @@
+#!/usr/bin/env python3
+"""
+git-mdl-version-check
+
+Inspects all MOODLE_XX_STABLE branches in the current git repository,
+extracts the full version history from version.php on each branch, then
+reports anomalies where an earlier stable branch carries a higher plugin
+version number than a later stable branch at any point in its history.
+"""
+
+import re
+import subprocess
+import sys
+from dataclasses import dataclass, field
+
+VERSION_RE = re.compile(r'\$(?:plugin|module|component)\s*->\s*version\s*=\s*(\d+)\s*;')
+BRANCH_RE  = re.compile(r'MOODLE_(\d+)_STABLE$')
+
+
+# ── helpers ──────────────────────────────────────────────────────────────────
+
+def git(*args, check=True):
+    result = subprocess.run(
+        ['git'] + list(args),
+        capture_output=True, text=True, check=check,
+    )
+    return result.stdout.strip()
+
+
+def primary_remote():
+    """Return 'origin' if it exists, otherwise the first configured remote."""
+    remotes = git('remote').splitlines()
+    if 'origin' in remotes:
+        return 'origin'
+    return remotes[0] if remotes else None
+
+
+def stable_branches():
+    """Return MOODLE_XX_STABLE branches from the primary remote, sorted by
+    ascending Moodle version number.
+    """
+    remote = primary_remote()
+    if not remote:
+        print('error: no remotes configured', file=sys.stderr)
+        sys.exit(1)
+
+    raw = git('branch', '-r')
+    branches = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if '->' in line:
+            continue
+        # Only consider branches from the primary remote
+        if not line.startswith(f'{remote}/'):
+            continue
+        m = BRANCH_RE.search(line)
+        if m:
+            branches.append((int(m.group(1)), line))
+    branches.sort(key=lambda t: t[0])
+    return branches, remote  # [(mdl_version_int, 'origin/MOODLE_XX_STABLE'), ...], remote
+
+
+def extract_version(blob):
+    """Return the integer plugin version from a version.php blob, or None."""
+    m = VERSION_RE.search(blob)
+    return int(m.group(1)) if m else None
+
+
+def merge_base(ref_a, ref_b):
+    """Return the merge-base SHA between two refs, or None."""
+    try:
+        return git('merge-base', ref_a, ref_b)
+    except subprocess.CalledProcessError:
+        return None
+
+def split_version(base_sha):
+    """Return the version.php value at the given merge-base SHA."""
+    try:
+        blob = git('show', f'{base_sha}:version.php')
+        return extract_version(blob)
+    except subprocess.CalledProcessError:
+        return None
+
+
+def first_version_bump(branch_ref, base_sha, split_ver):
+    """
+    Walk commits on branch_ref after base_sha (oldest first) and find the
+    first commit where version.php shows a version strictly greater than
+    split_ver.
+
+    Returns (version, position) where position is the 1-based index of that
+    commit among ALL commits on the branch since the split (not just
+    version-touching ones), so it reflects how many commits into the branch
+    the bump occurred.
+
+    Returns (None, None) if no bump is found.
+    """
+    log_range = f'{base_sha}..{branch_ref}' if base_sha else branch_ref
+
+    # All commits oldest-first for position counting
+    all_log = git('log', '--first-parent', '--format=%H', '--reverse', log_range)
+    if not all_log:
+        return None, None
+    all_commits = all_log.splitlines()
+
+    # Only commits that touched version.php, oldest-first
+    ver_log = git('log', '--first-parent', '--format=%H', '--reverse',
+                  '--diff-filter=AM', '--', 'version.php', log_range)
+    if not ver_log:
+        return None, None
+
+    # Map SHA -> 1-based position in the full commit list
+    position_map = {sha: i + 1 for i, sha in enumerate(all_commits)}
+
+    for sha in ver_log.splitlines():
+        try:
+            blob = git('show', f'{sha}:version.php')
+        except subprocess.CalledProcessError:
+            continue
+        v = extract_version(blob)
+        if v is not None and (split_ver is None or v > split_ver):
+            return v, position_map.get(sha)
+
+    return None, None
+
+
+def commit_count(base_sha, tip_ref):
+    """Count all commits on tip_ref since base_sha using rev-list."""
+    try:
+        log_range = f'{base_sha}..{tip_ref}' if base_sha else tip_ref
+        return int(git('rev-list', '--count', log_range))
+    except (subprocess.CalledProcessError, ValueError):
+        return 0
+
+
+
+def commit_date(sha):
+    """Return the commit date as '7 Apr 2026' for a given SHA."""
+    try:
+        return git('log', '-1', '--format=%cd', '--date=format:%d %b %Y', sha)
+    except subprocess.CalledProcessError:
+        return '?'
+
+
+def format_commit(sha):
+    """Format a SHA as '0db146b 20 May 2022', or '(root)' if None."""
+    if not sha:
+        return '(root)'
+    return f"{sha[:7]} {commit_date(sha)}"
+
+
+
+def tip_sha_for(branch_ref):
+    """Return the full SHA of the branch tip."""
+    try:
+        return git('rev-parse', branch_ref)
+    except subprocess.CalledProcessError:
+        return None
+
+
+def tip_version_for(branch_ref):
+    """Read version.php directly at the branch tip — the ground truth current version."""
+    try:
+        blob = git('show', f'{branch_ref}:version.php')
+        return extract_version(blob)
+    except subprocess.CalledProcessError:
+        return None
+
+
+# ── analysis ─────────────────────────────────────────────────────────────────
+
+@dataclass
+class BranchInfo:
+    mdl_version: int
+    ref: str
+    name: str
+    base_sha: str = field(default=None)    # merge-base with previous branch
+    tip_sha: str = field(default=None)     # SHA at branch tip
+    _split_version: int = field(default=None)   # version at branch point
+    _tip_version: int = field(default=None)
+    _commit_count: int = field(default=0)
+    first_bump_version: int = field(default=None)   # first version > split on this branch
+    first_bump_position: int = field(default=None)  # how many commits in that bump was
+
+    @property
+    def min_version(self):
+        # Use first real bump on this branch; fall back to split-point version
+        return self.first_bump_version if self.first_bump_version is not None \
+            else self._split_version
+
+    @property
+    def tip_version(self):
+        return self._tip_version
+
+    @property
+    def num_commits(self):
+        return self._commit_count
+
+
+def analyse(branches):
+    """
+    Detect version ordering anomalies across consecutive stable branches.
+
+    Rules (each new branch must be strictly greater than its predecessor):
+      1. curr.tip_version must be > prev.tip_version
+      2. curr.min_version (first bump after split) must be > prev.tip_version
+      3. The first version bump must occur within the first 3 commits
+
+    Returns:
+      issues     - list of human-readable strings
+      tip_colors - dict of {branch_name: 'orange'|'red'} for tip version cell
+      min_colors - dict of {branch_name: 'orange'|'red'} for min version cell
+    """
+    issues = []
+    tip_colors = {}  # branch_name -> 'orange' | 'red'
+    min_colors = {}  # branch_name -> 'orange' | 'red'
+
+    for i in range(1, len(branches)):
+        prev = branches[i - 1]
+        curr = branches[i]
+
+        # Rule 1: tip must be strictly greater than previous tip
+        if prev.tip_version is not None and curr.tip_version is not None:
+            if curr.tip_version <= prev.tip_version:
+                if prev.name not in tip_colors:
+                    tip_colors[prev.name] = 'orange'
+                tip_colors[curr.name] = 'red'
+                issues.append(
+                    f"  ⚠  {curr.name} tip ({curr.tip_version}) "
+                    f"not strictly greater than {prev.name} tip ({prev.tip_version})"
+                )
+
+        # Rule 2: first real bump must be strictly greater than previous tip
+        if prev.tip_version is not None and curr.min_version is not None:
+            if curr.min_version <= prev.tip_version:
+                min_colors[curr.name] = 'red'
+                if prev.name not in tip_colors:
+                    tip_colors[prev.name] = 'orange'
+                # Only add a separate issue if not already flagged by rule 1
+                if curr.tip_version is not None and curr.tip_version > prev.tip_version:
+                    issues.append(
+                        f"  ⚠  {curr.name} first bump ({curr.min_version}) "
+                        f"not strictly greater than {prev.name} tip ({prev.tip_version})"
+                    )
+
+        # Rule 3: first version bump should be within the first 3 commits
+        if curr.first_bump_position is not None and curr.first_bump_position > 3:
+            min_colors[curr.name] = 'orange'
+            issues.append(
+                f"  ⚠  {curr.name} first version bump was commit "
+                f"{curr.first_bump_position} (expected within 3)"
+            )
+
+    return issues, tip_colors, min_colors
+
+
+# ── output ───────────────────────────────────────────────────────────────────
+
+RESET  = '\033[0m'
+BOLD   = '\033[1m'
+RED    = '\033[31m'
+ORANGE = '\033[33m'
+YELLOW = '\033[33m'
+GREEN  = '\033[32m'
+CYAN   = '\033[36m'
+
+def _no_color():
+    return not sys.stdout.isatty()
+
+def c(code, text):
+    return text if _no_color() else f'{code}{text}{RESET}'
+
+
+def print_summary(branches, tip_colors=None, min_colors=None):
+    if tip_colors is None:
+        tip_colors = {}
+    if min_colors is None:
+        min_colors = {}
+    col_w    = max(len(b.name) for b in branches) + 2
+    commit_w = 22  # '0db146b 20 May 2022'
+
+    print()
+    print(c(BOLD,
+        f"{'Branch':<{col_w}}  "
+        f"{'Start commit':<{commit_w}}  "
+        f"{'Min version':<14}  "
+        f"{'Latest version':<14}  "
+        f"{'End commit':<{commit_w}}  "
+        f"Commits"
+    ))
+    print('─' * (col_w + commit_w * 2 + 50))
+
+    for b in branches:
+        start = format_commit(b.base_sha).ljust(commit_w)
+        end   = format_commit(b.tip_sha).ljust(commit_w)
+
+        tip_col = tip_colors.get(b.name)
+        if tip_col == 'red':
+            tip_str = c(RED,    f"{b.tip_version!s:<14}")
+        elif tip_col == 'orange':
+            tip_str = c(ORANGE, f"{b.tip_version!s:<14}")
+        else:
+            tip_str = f"{b.tip_version!s:<14}"
+
+        min_col = min_colors.get(b.name)
+        if min_col == 'red':
+            min_str = c(RED,    f"{b.min_version!s:<14}")
+        elif min_col == 'orange':
+            min_str = c(ORANGE, f"{b.min_version!s:<14}")
+        else:
+            min_str = f"{b.min_version!s:<14}"
+
+        print(
+            f"{c(CYAN, b.name):<{col_w + 9}}  "
+            f"{start}  "
+            f"{min_str}  "
+            f"{tip_str}  "
+            f"{end}  "
+            f"{b.num_commits}"
+        )
+    print()
+
+
+def main():
+    # Verify we are inside a git repo
+    try:
+        git('rev-parse', '--git-dir')
+    except subprocess.CalledProcessError:
+        print('error: not a git repository', file=sys.stderr)
+        sys.exit(1)
+
+    raw_branches, remote = stable_branches()
+    if not raw_branches:
+        print(f"No MOODLE_*_STABLE branches found on remote '{remote}'.")
+        sys.exit(0)
+
+    print(f"Remote: {remote}")
+    print(f"Found {len(raw_branches)} stable branch(es). Scanning version history…")
+
+    branches = []
+    prev_ref = None
+    for mdl_ver, ref in raw_branches:
+        name = BRANCH_RE.search(ref).group(0)
+        print(f"  {name} … ", end='', flush=True)
+        base_sha = merge_base(prev_ref, ref) if prev_ref else None
+        t_sha    = tip_sha_for(ref)
+        t_ver    = tip_version_for(ref)
+        s_ver    = split_version(base_sha) if base_sha else None
+        count    = commit_count(base_sha, ref)
+        bump_ver, bump_pos = first_version_bump(ref, base_sha, s_ver) \
+            if base_sha else (None, None)
+        bi = BranchInfo(
+            mdl_version=mdl_ver, ref=ref, name=name,
+            base_sha=base_sha, tip_sha=t_sha,
+            _split_version=s_ver, _tip_version=t_ver,
+            _commit_count=count,
+            first_bump_version=bump_ver,
+            first_bump_position=bump_pos,
+        )
+        branches.append(bi)
+        bump_info = f", first bump @ commit {bump_pos}" if bump_pos else ""
+        print(f"{count} commit(s), {bi.min_version or '?'} → {bi.tip_version or '?'}{bump_info}")
+        prev_ref = ref
+
+    issues, tip_colors, min_colors = analyse(branches)
+    print_summary(branches, tip_colors, min_colors)
+
+    if issues:
+        print(c(RED, c(BOLD, f"{len(issues)} anomaly(ies) detected:")))
+        for issue in issues:
+            print(c(YELLOW, issue))
+        print()
+        sys.exit(2)
+    else:
+        print(c(GREEN, "✓ No version ordering anomalies detected."))
+        print()
+        sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
