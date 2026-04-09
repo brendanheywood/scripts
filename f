@@ -38,9 +38,10 @@ my $grep = join(' ', reverse @grep);
 my $cmd = "grep";
 $cmd .= " --color=always";
 $cmd .= " -r";  # recursive
+$cmd .= " -I";  # Exclude binary files (eg git)
 $cmd .= " -n";  # show line numbers
 $cmd .= " -F";  # = fixed string (ie not regex)
-$cmd .= " -C9"; # 3 lines of context
+$cmd .= " -C7"; # 3 lines of context
 $cmd .= " -- "; # We do this with -- mode so we can search for > < - etc
 $cmd .= " '$grep'";
 $cmd .= " $files";
