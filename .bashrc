@@ -2,6 +2,10 @@
 # Why!!
 source /etc/bash_completion
 
+#  This forces all commands to be saved into the bash history
+HISTCONTROL=
+HISTIGNORE=
+
 
 alias gt=git
 alias gut=git
