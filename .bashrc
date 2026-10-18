@@ -61,6 +61,7 @@ alias grep='grep --color=auto'
 
 export PATH="$PATH:$HOME/scripts/"
 export PATH="$PATH:$HOME/moosh/bin"
+export PATH="$PATH:$HOME/.local/bin"
 #eval "$(/home/brendan/moosh/bin/moosh init -)"
 
 export DEBFULLNAME='Brendan Heywood'
@@ -97,4 +98,9 @@ export LESS="-riMSx4 -FX --shift .1"
 # Add your 'projects' or whatever folder to CDPATH enables you to 'cd <tab-autocomplete>' to it from anywhere
 #   export CDPATH=".:/var/www/"
 export CDPATH="."
+
+if [ -f ~/.config/docker-dev/config ]; then
+  eval $(grep "^DOCKER_DEV_ROOT=" ~/.config/docker-dev/config)
+  eval "$(_CONTROL_COMPLETE=bash_source control)"
+fi
 
