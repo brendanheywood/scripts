@@ -1,5 +1,6 @@
 
 # ifconfig
 sudo apt install net-tools
+sudo apt install libterm-readkey-perl
 
 
