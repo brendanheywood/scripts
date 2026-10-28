@@ -25,6 +25,8 @@ my $fork     = $ENV{BACKPORT_FORK}     || "origin";
 print "Feature = $feature \n";
 `git checkout $feature`;
 
+my @failed;
+
 foreach my $onto (@onto) {
 
     my $ontobranch = $feature . '-' . $onto;
@@ -67,7 +69,14 @@ foreach my $onto (@onto) {
     # Graft the diff new stuff on feature from main, onto new stable branch
     # `git rebase --onto $ontobranch $feature $upstream/$onto `;
     $cmd = "git cherry-pick main..$feature";
-    print "$cmd\n"; `$cmd`;
+    print "$cmd\n"; print `$cmd 2>&1`;
+    if ($? != 0) {
+        print "\nERROR: cherry-pick onto $onto failed (conflict?). Aborting and skipping push.\n";
+        `git cherry-pick --abort`;
+        push @failed, $onto;
+        print "-------------------------------------------------\n";
+        next;
+    }
     print "-------------------------------------------------\n";
 
     $cmd = "git push -f $fork";
@@ -83,3 +92,7 @@ print "-------------------------------------------------\n";
 
 # `git checkout $branch`;
 
+if (@failed) {
+    print "\nFAILED backports: " . join(', ', @failed) . "\n";
+    exit 1;
+}
