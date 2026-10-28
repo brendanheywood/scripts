@@ -17,6 +17,10 @@ my @onto = @ARGV;
 
 my $githubrepo = `git config --get user.github`;
 
+# Remotes: upstream to pull from, fork to push to (override via env)
+my $upstream = $ENV{BACKPORT_UPSTREAM} || "upstream";
+my $fork     = $ENV{BACKPORT_FORK}     || "origin";
+
 
 print "Feature = $feature \n";
 `git checkout $feature`;
@@ -39,7 +43,7 @@ foreach my $onto (@onto) {
     print "-------------------------------------------------\n";
 
     # Make sure it's up to date
-    $cmd ="git pull origin";
+    $cmd ="git pull $upstream";
     print "$cmd\n"; `$cmd`;
     print "-------------------------------------------------\n";
 
@@ -49,7 +53,7 @@ foreach my $onto (@onto) {
     print "-------------------------------------------------\n";
 
     # Start a new branch from the stable branch
-    $cmd = "git branch $ontobranch origin/$onto";
+    $cmd = "git branch $ontobranch $upstream/$onto";
     print "$cmd\n"; `$cmd`;
     print "-------------------------------------------------\n";
 
@@ -61,12 +65,12 @@ foreach my $onto (@onto) {
     # `git pull upstream $ontobranch`;
 
     # Graft the diff new stuff on feature from main, onto new stable branch
-    # `git rebase --onto $ontobranch $feature origin/$onto `;
+    # `git rebase --onto $ontobranch $feature $upstream/$onto `;
     $cmd = "git cherry-pick main..$feature";
     print "$cmd\n"; `$cmd`;
     print "-------------------------------------------------\n";
 
-    $cmd = "git push -f brendan";
+    $cmd = "git push -f $fork";
     print "$cmd\n"; `$cmd`;
 
     print "\n\nDiff url https://github.com/moodle/moodle/compare/$onto...$githubrepo:$ontobranch\n\n"
