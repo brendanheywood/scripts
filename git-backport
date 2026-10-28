@@ -49,7 +49,7 @@ sub jira_curl {
 # "MOODLE_405_STABLE" => "4.5", "main" => "Master"
 sub jira_version {
     my $b = shift;
-    return 'Master' if $b eq 'main' || $b eq 'master';
+    return "main" if $b eq 'main' || $b eq 'master';
     return ($1+0) . "." . ($2+0) if $b =~ /^MOODLE_(\d)(\d+)_STABLE$/;
     return undef;
 }
@@ -99,6 +99,18 @@ sub update_jira {
         }
     }
     print "\nJira $issue ($jira/browse/$issue):\n" . join("\n", @report) . "\n";
+}
+
+# The feature branch itself is the main (Master) pull: base it on where it forked from upstream main
+{
+    my $mainbase = `git merge-base $upstream/main $feature`;
+    chomp $mainbase;
+    $mainbase = `git rev-parse --short=8 $mainbase`;
+    chomp $mainbase;
+    if ($mainbase) {
+        $jira_updates{"Pull main Branch"}   = $feature;
+        $jira_updates{"Pull main Diff URL"} = "https://github.com/moodle/moodle/compare/$mainbase...$githubrepo:$feature";
+    }
 }
 
 foreach my $onto (@onto) {
@@ -178,7 +190,7 @@ print "-------------------------------------------------\n";
 # `git checkout $branch`;
 
 if (%jira_updates) {
-    $jira_updates{'Pull from Repository'} = "git\@github.com:$githubrepo/moodle.git";
+    $jira_updates{'Pull from Repository'} = "https://github.com/$githubrepo/moodle";
     update_jira(%jira_updates);
 }
 
