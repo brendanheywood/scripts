@@ -133,6 +133,10 @@ foreach my $onto (@onto) {
     print "$cmd\n"; `$cmd`;
     print "-------------------------------------------------\n";
 
+    # Pin the base commit so the diff url stays exact after rebases
+    my $base = `git rev-parse --short=8 $upstream/$onto`;
+    chomp $base;
+
     # Checkout new branch
     $cmd = "git checkout $ontobranch";
     print "$cmd\n"; `$cmd`;
@@ -156,7 +160,7 @@ foreach my $onto (@onto) {
     $cmd = "git push -f $fork";
     print "$cmd\n"; `$cmd`;
 
-    my $url = "https://github.com/moodle/moodle/compare/$onto...$githubrepo:$ontobranch";
+    my $url = "https://github.com/moodle/moodle/compare/$base...$githubrepo:$ontobranch";
     print "\n\nDiff url $url\n\n";
     if (my $v = jira_version($onto)) {
         $jira_updates{"Pull $v Branch"}   = $ontobranch;
