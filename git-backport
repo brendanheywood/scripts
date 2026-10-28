@@ -4,6 +4,7 @@
 # earlier stable branches of moodle.
 
 use strict;
+use JSON::PP;
 
 if (!$ARGV[0]) {
 
@@ -16,6 +17,7 @@ my $feature = shift @ARGV;
 my @onto = @ARGV;
 
 my $githubrepo = `git config --get user.github`;
+chomp $githubrepo;
 
 # Remotes: upstream to pull from, fork to push to (override via env)
 my $upstream = $ENV{BACKPORT_UPSTREAM} || "upstream";
@@ -26,6 +28,78 @@ print "Feature = $feature \n";
 `git checkout $feature`;
 
 my @failed;
+my %jira_updates;   # field name => value
+
+# Jira: auth via ~/.netrc (machine moodle.atlassian.net login EMAIL password API_TOKEN)
+my $jira = $ENV{BACKPORT_JIRA} || "https://moodle.atlassian.net";
+my ($issue) = $feature =~ /^(MDL-\d+)/i;
+$issue = uc $issue if $issue;
+
+sub jira_curl {
+    my ($method, $path, $body) = @_;
+    my @cmd = ('curl', '-sS', '-n', '-X', $method, '-H', 'Content-Type: application/json',
+               '-w', "\n%{http_code}", "$jira$path");
+    push @cmd, '-d', $body if defined $body;
+    open(my $fh, '-|', @cmd) or return (0, '');
+    local $/; my $out = <$fh>; close $fh;
+    $out =~ s/\n(\d+)\z// or return (0, $out);
+    return ($1, $out);
+}
+
+# "MOODLE_405_STABLE" => "4.5", "main" => "Master"
+sub jira_version {
+    my $b = shift;
+    return 'Master' if $b eq 'main' || $b eq 'master';
+    return ($1+0) . "." . ($2+0) if $b =~ /^MOODLE_(\d)(\d+)_STABLE$/;
+    return undef;
+}
+
+# Lowercase and collapse whitespace (Jira names can contain double spaces)
+sub norm { my $n = lc shift; $n =~ s/\s+/ /g; return $n; }
+
+sub update_jira {
+    my %u = @_;
+    return unless $issue && %u;
+    my ($code, $out) = jira_curl('GET', '/rest/api/2/field');
+    if ($code != 200) { print "Jira: field lookup failed (HTTP $code), skipping update\n"; return; }
+    my %id = map { (norm($_->{name}) => $_->{id}) } @{ decode_json($out) };
+    my (%fields, $listed);
+    foreach my $name (keys %u) {
+        my $fid = $id{norm($name)};
+        if (!$fid) {
+            print "Jira: no custom field named '$name', skipping it\n";
+            print "Jira: available pull fields: " . join(', ', sort grep { /pull|repo|branch/ } keys %id) . "\n" unless $listed++;
+            next;
+        }
+        $fields{$fid} = $u{$name};
+    }
+    return unless %fields;
+
+    # Compare against current values so we can report what actually changed
+    ($code, $out) = jira_curl('GET', "/rest/api/2/issue/$issue?fields=" . join(',', keys %fields));
+    my $current = $code == 200 ? (decode_json($out)->{fields} || {}) : {};
+    my (%changed, @report);
+    foreach my $name (sort keys %u) {
+        my $fid = $id{norm($name)} or next;
+        my $old = $current->{$fid};
+        if (defined $old && $old eq $u{$name}) {
+            push @report, "  unchanged: $name = $u{$name}";
+        } else {
+            $changed{$fid} = $u{$name};
+            push @report, "  " . (defined $old && length $old ? "updated:   " : "set:       ") . "$name = $u{$name}"
+                        . (defined $old && length $old ? " (was: $old)" : "");
+        }
+    }
+
+    if (%changed) {
+        ($code, $out) = jira_curl('PUT', "/rest/api/2/issue/$issue", encode_json({ fields => \%changed }));
+        if ($code != 204) {
+            print "Jira: update of $issue failed (HTTP $code): $out\n";
+            return;
+        }
+    }
+    print "\nJira $issue ($jira/browse/$issue):\n" . join("\n", @report) . "\n";
+}
 
 foreach my $onto (@onto) {
 
@@ -82,7 +156,14 @@ foreach my $onto (@onto) {
     $cmd = "git push -f $fork";
     print "$cmd\n"; `$cmd`;
 
-    print "\n\nDiff url https://github.com/moodle/moodle/compare/$onto...$githubrepo:$ontobranch\n\n"
+    my $url = "https://github.com/moodle/moodle/compare/$onto...$githubrepo:$ontobranch";
+    print "\n\nDiff url $url\n\n";
+    if (my $v = jira_version($onto)) {
+        $jira_updates{"Pull $v Branch"}   = $ontobranch;
+        $jira_updates{"Pull $v Diff URL"} = $url;
+    } else {
+        print "Jira: can't map $onto to a version, skipping\n";
+    }
 }
 
 # Now go back to where we started
@@ -91,6 +172,11 @@ print "$cmd\n"; `$cmd`;
 print "-------------------------------------------------\n";
 
 # `git checkout $branch`;
+
+if (%jira_updates) {
+    $jira_updates{'Pull from Repository'} = "git\@github.com:$githubrepo/moodle.git";
+    update_jira(%jira_updates);
+}
 
 if (@failed) {
     print "\nFAILED backports: " . join(', ', @failed) . "\n";
